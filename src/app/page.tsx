@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { ContactCard } from '@/components/ContactCard'
+import { ContactGridSkeleton } from '@/components/ContactCardSkeleton'
 import { AddContactModal } from '@/components/AddContactModal'
 import { EditContactModal } from '@/components/EditContactModal'
 import { DeleteConfirmationModal } from '@/components/DeleteConfirmationModal'
@@ -29,6 +30,7 @@ export default function Home() {
   const { user, logout } = useAuth()
   const [contacts, setContacts] = useState<Contact[]>([])
   const [filteredContacts, setFilteredContacts] = useState<Contact[]>([])
+  const [loading, setLoading] = useState(true)
   const [showAddModal, setShowAddModal] = useState(false)
   const [showEditModal, setShowEditModal] = useState(false)
   const [showDeleteModal, setShowDeleteModal] = useState(false)
@@ -48,8 +50,12 @@ export default function Home() {
 
   // Load contacts from localStorage on mount
   useEffect(() => {
-    const loadContacts = () => {
+    const loadContacts = async () => {
       try {
+        setLoading(true)
+        // Simulate realistic loading time for better UX
+        await new Promise(resolve => setTimeout(resolve, 800))
+        
         const storedContacts = getContacts()
         if (storedContacts.length === 0) {
           // Initialize with sample data if no contacts exist
@@ -63,6 +69,8 @@ export default function Home() {
         }
       } catch (error) {
         console.error('Error loading contacts:', error)
+      } finally {
+        setLoading(false)
       }
     }
 
@@ -352,17 +360,23 @@ export default function Home() {
 
           {/* Contact Display */}
           {viewMode === 'grid' && (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredContacts.map(contact => (
-                <ContactCard
-                  key={contact.id}
-                  contact={contact}
-                  onEdit={handleEditContact}
-                  onDelete={handleDeleteContact}
-                  onManageConnections={handleManageConnections}
-                />
-              ))}
-            </div>
+            <>
+              {loading ? (
+                <ContactGridSkeleton />
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {filteredContacts.map(contact => (
+                    <ContactCard
+                      key={contact.id}
+                      contact={contact}
+                      onEdit={handleEditContact}
+                      onDelete={handleDeleteContact}
+                      onManageConnections={handleManageConnections}
+                    />
+                  ))}
+                </div>
+              )}
+            </>
           )}
 
           {viewMode === 'bulk' && (

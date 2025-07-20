@@ -17,6 +17,7 @@ import { Plus, Camera, FileText } from 'lucide-react'
 import { ImageUpload } from './ImageUpload'
 import { ExtractedDataPreview } from './ExtractedDataPreview'
 import { ContactAvatar } from './ContactAvatar'
+import { LoadingButton } from './LoadingButton'
 import type { ExtractedData } from '@/lib/ocr'
 
 const ContactSchema = z.object({
@@ -45,6 +46,7 @@ export function AddContactModal({ open, onOpenChange, onAdd }: AddContactModalPr
   const [extractedData, setExtractedData] = React.useState<ExtractedData | null>(null)
   const [showDataPreview, setShowDataPreview] = React.useState(false)
   const [error, setError] = React.useState<string | null>(null)
+  const [isSubmitting, setIsSubmitting] = React.useState(false)
 
   const form = useForm<ContactFormValues>({
     resolver: zodResolver(ContactSchema),
@@ -95,32 +97,40 @@ export function AddContactModal({ open, onOpenChange, onAdd }: AddContactModalPr
     setTimeout(() => setError(null), 5000)
   }
 
-  const onSubmit = (values: ContactFormValues) => {
-    const newContact: Contact = {
-      id: Date.now().toString(),
-      name: values.name,
-      email: values.email || undefined,
-      phone: values.phone || undefined,
-      tier: values.tier,
-      relationshipToGary: values.relationshipToGary,
-      location: values.location || undefined,
-      hasKids: values.hasKids,
-      isMarried: values.isMarried,
-      interests: values.interests ? values.interests.split(',').map(i => i.trim()).filter(Boolean) : [],
-      notes: values.notes,
-      socialHandles: {},
-      connections: [],
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      addedBy: 'gary',
-    }
+  const onSubmit = async (values: ContactFormValues) => {
+    setIsSubmitting(true)
+    
     try {
+      // Simulate realistic save time
+      await new Promise(resolve => setTimeout(resolve, 600))
+      
+      const newContact: Contact = {
+        id: Date.now().toString(),
+        name: values.name,
+        email: values.email || undefined,
+        phone: values.phone || undefined,
+        tier: values.tier,
+        relationshipToGary: values.relationshipToGary,
+        location: values.location || undefined,
+        hasKids: values.hasKids,
+        isMarried: values.isMarried,
+        interests: values.interests ? values.interests.split(',').map(i => i.trim()).filter(Boolean) : [],
+        notes: values.notes,
+        socialHandles: {},
+        connections: [],
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        addedBy: 'gary',
+      }
+      
       const contacts = getContacts()
       saveContacts([newContact, ...contacts])
       onAdd(newContact)
       handleClose()
     } catch (error) {
       alert('Failed to save contact. Please try again.')
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
@@ -319,7 +329,14 @@ export function AddContactModal({ open, onOpenChange, onAdd }: AddContactModalPr
                 </FormItem>
               )} />
               <div className="flex justify-end">
-                <Button type="submit" className="bg-pink-500 hover:bg-pink-600 text-white font-semibold">Save Contact</Button>
+                <LoadingButton 
+                  type="submit" 
+                  loading={isSubmitting}
+                  loadingText="Saving..."
+                  className="bg-pink-500 hover:bg-pink-600 text-white font-semibold"
+                >
+                  Save Contact
+                </LoadingButton>
               </div>
             </form>
           </Form>
