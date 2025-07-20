@@ -2,6 +2,7 @@
 
 import * as React from 'react'
 import { createContext, useContext, useEffect, useState } from 'react'
+import { showSuccessToast, showErrorToast } from '@/lib/toast'
 import type { AuthUser, LoginCredentials } from '@/lib/auth'
 import { saveSession, getSession, clearSession, isAuthenticated } from '@/lib/auth'
 
@@ -43,8 +44,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (response.ok && data.success) {
         setUser(data.user)
         saveSession(data.token, data.user)
+        showSuccessToast.loginSuccess(data.user.username, data.user.team)
         return { success: true }
       } else {
+        showErrorToast.loginFailed()
         return { success: false, error: data.error || 'Login failed' }
       }
     } catch (error) {
@@ -56,6 +59,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const logout = () => {
     setUser(null)
     clearSession()
+    
+    // Show logout success toast
+    showSuccessToast.logoutSuccess()
     
     // Call logout API
     fetch('/api/auth/logout', {

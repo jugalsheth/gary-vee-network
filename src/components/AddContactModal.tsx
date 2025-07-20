@@ -18,6 +18,8 @@ import { ImageUpload } from './ImageUpload'
 import { ExtractedDataPreview } from './ExtractedDataPreview'
 import { ContactAvatar } from './ContactAvatar'
 import { LoadingButton } from './LoadingButton'
+import { SuccessButton } from './SuccessButton'
+import { showSuccessToast, showErrorToast } from '@/lib/toast'
 import type { ExtractedData } from '@/lib/ocr'
 
 const ContactSchema = z.object({
@@ -47,6 +49,7 @@ export function AddContactModal({ open, onOpenChange, onAdd }: AddContactModalPr
   const [showDataPreview, setShowDataPreview] = React.useState(false)
   const [error, setError] = React.useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = React.useState(false)
+  const [isSuccess, setIsSuccess] = React.useState(false)
 
   const form = useForm<ContactFormValues>({
     resolver: zodResolver(ContactSchema),
@@ -72,6 +75,8 @@ export function AddContactModal({ open, onOpenChange, onAdd }: AddContactModalPr
     setExtractedData(null)
     setShowDataPreview(false)
     setError(null)
+    setIsSubmitting(false)
+    setIsSuccess(false)
   }
 
   const handleDataExtracted = (data: ExtractedData) => {
@@ -99,6 +104,7 @@ export function AddContactModal({ open, onOpenChange, onAdd }: AddContactModalPr
 
   const onSubmit = async (values: ContactFormValues) => {
     setIsSubmitting(true)
+    setIsSuccess(false)
     
     try {
       // Simulate realistic save time
@@ -126,11 +132,21 @@ export function AddContactModal({ open, onOpenChange, onAdd }: AddContactModalPr
       const contacts = getContacts()
       saveContacts([newContact, ...contacts])
       onAdd(newContact)
-      handleClose()
-    } catch (error) {
-      alert('Failed to save contact. Please try again.')
-    } finally {
+      
+      // Show success state
       setIsSubmitting(false)
+      setIsSuccess(true)
+      
+      // Show success toast
+      showSuccessToast.contactAdded(values.name)
+      
+      // Close modal after success animation
+      setTimeout(() => {
+        handleClose()
+      }, 1500)
+    } catch (error) {
+      setIsSubmitting(false)
+      showErrorToast.contactAddFailed()
     }
   }
 
@@ -329,14 +345,16 @@ export function AddContactModal({ open, onOpenChange, onAdd }: AddContactModalPr
                 </FormItem>
               )} />
               <div className="flex justify-end">
-                <LoadingButton 
+                <SuccessButton 
                   type="submit" 
                   loading={isSubmitting}
+                  success={isSuccess}
                   loadingText="Saving..."
+                  successText="Saved!"
                   className="bg-pink-500 hover:bg-pink-600 text-white font-semibold"
                 >
                   Save Contact
-                </LoadingButton>
+                </SuccessButton>
               </div>
             </form>
           </Form>

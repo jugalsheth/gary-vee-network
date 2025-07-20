@@ -23,6 +23,7 @@ import { Badge } from '@/components/ui/badge'
 import { Plus, Upload, Users, Grid, List, Network, BarChart3 } from 'lucide-react'
 import { getTeamColor } from '@/lib/auth'
 import { getContacts, addContact, updateContact, deleteContact, saveContacts } from '@/lib/storage'
+import { showSuccessToast, showErrorToast, trackContactMilestone } from '@/lib/toast'
 import type { Contact, Connection } from '@/lib/types'
 import { initializeSampleData } from '@/lib/sampleData'
 
@@ -83,11 +84,14 @@ export default function Home() {
       setContacts(prev => [...prev, contact])
       setFilteredContacts(prev => [...prev, contact])
       setShowAddModal(false)
+      
+      // Track milestone
+      trackContactMilestone(contacts.length + 1)
     } catch (error) {
       console.error('Error adding contact:', error)
-      alert('Failed to add contact')
+      showErrorToast.contactAddFailed()
     }
-  }, [])
+  }, [contacts.length])
 
   const handleEditContact = useCallback((contact: Contact) => {
     setSelectedContact(contact)
@@ -99,9 +103,12 @@ export default function Home() {
       updateContact(updatedContact)
       setContacts(prev => prev.map(c => c.id === updatedContact.id ? updatedContact : c))
       setFilteredContacts(prev => prev.map(c => c.id === updatedContact.id ? updatedContact : c))
+      
+      // Show success toast
+      showSuccessToast.contactUpdated(updatedContact.name)
     } catch (error) {
       console.error('Error updating contact:', error)
-      alert('Failed to update contact')
+      showErrorToast.contactUpdateFailed()
     }
   }, [])
 
@@ -112,15 +119,21 @@ export default function Home() {
 
   const handleConfirmDeleteContact = useCallback((contactId: string) => {
     try {
+      const contactToDelete = contacts.find(c => c.id === contactId)
       deleteContact(contactId)
       setContacts(prev => prev.filter(c => c.id !== contactId))
       setFilteredContacts(prev => prev.filter(c => c.id !== contactId))
       setSelectedContacts(prev => prev.filter(c => c.id !== contactId))
+      
+      // Show success toast
+      if (contactToDelete) {
+        showSuccessToast.contactDeleted(contactToDelete.name)
+      }
     } catch (error) {
       console.error('Error deleting contact:', error)
-      alert('Failed to delete contact')
+      showErrorToast.contactDeleteFailed()
     }
-  }, [])
+  }, [contacts])
 
   const handleBulkDeleteContacts = useCallback((contactIds: string[]) => {
     try {
@@ -213,9 +226,12 @@ export default function Home() {
       
       setContacts(prev => [...prev, ...importedContacts])
       setFilteredContacts(prev => [...prev, ...importedContacts])
+      
+      // Show success toast
+      showSuccessToast.contactsImported(importedContacts.length)
     } catch (error) {
       console.error('Error importing contacts:', error)
-      alert('Failed to import some contacts')
+      showErrorToast.importFailed()
     }
   }, [])
 

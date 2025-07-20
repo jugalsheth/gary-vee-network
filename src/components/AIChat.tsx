@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { ContactCard } from '@/components/ContactCard'
 import { AIChatLoading } from '@/components/AIChatLoading'
+import { showSuccessToast, showErrorToast } from '@/lib/toast'
 import type { Contact } from '@/lib/types'
 import { Sparkles, Send, Bot, User, Lightbulb, TrendingUp } from 'lucide-react'
 
@@ -57,10 +58,15 @@ export function AIChat({ contacts }: { contacts: Contact[] }) {
         throw new Error(data.details || data.error || 'AI chat failed')
       }
       setMessages(msgs => [...msgs, { role: 'ai', content: data.response, contacts: data.matchedContacts }])
+      
+      // Show success toast
+      const resultCount = data.matchedContacts?.length || 0
+      showSuccessToast.aiQueryCompleted(resultCount)
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'AI chat failed'
       setMessages(msgs => [...msgs, { role: 'ai', content: `Sorry, there was an error: ${errorMessage}` }])
       setError(errorMessage)
+      showErrorToast.aiQueryFailed()
       console.error('AI Chat error:', err)
     } finally {
       setLoading(false)
