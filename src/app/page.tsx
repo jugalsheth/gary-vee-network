@@ -12,16 +12,21 @@ import { ExportButton } from '@/components/ExportButton'
 import { ThemeToggle } from '@/components/ThemeToggle'
 import { HeaderAnalytics, HeaderAnalyticsMobile } from '@/components/HeaderAnalytics'
 import { BulkOperations } from '@/components/BulkOperations'
+import { ProtectedRoute } from '@/components/ProtectedRoute'
+import { useAuth } from '@/components/AuthProvider'
 import { NetworkVisualization } from '@/components/NetworkVisualization'
 import { ConnectionModal } from '@/components/ConnectionModal'
 import { NetworkInsights } from '@/components/NetworkInsights'
 import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 import { Plus, Upload, Users, Grid, List, Network, BarChart3 } from 'lucide-react'
+import { getTeamColor } from '@/lib/auth'
 import { getContacts, addContact, updateContact, deleteContact, saveContacts } from '@/lib/storage'
 import type { Contact, Connection } from '@/lib/types'
 import { initializeSampleData } from '@/lib/sampleData'
 
 export default function Home() {
+  const { user, logout } = useAuth()
   const [contacts, setContacts] = useState<Contact[]>([])
   const [filteredContacts, setFilteredContacts] = useState<Contact[]>([])
   const [showAddModal, setShowAddModal] = useState(false)
@@ -211,19 +216,40 @@ export default function Home() {
   }, [])
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
-      {/* Header */}
-      <header className="bg-white dark:bg-gray-900 shadow-sm border-b border-gray-200 dark:border-gray-700 transition-colors duration-300">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center gap-4">
-              <div>
-                <h1 className="text-xl font-semibold text-gray-900 dark:text-gray-100 transition-colors duration-300">Gary Vee Network</h1>
-                <p className="text-sm text-gray-500 dark:text-gray-400 transition-colors duration-300">Enterprise relationship management</p>
+    <ProtectedRoute>
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
+        {/* Header */}
+        <header className="bg-white dark:bg-gray-900 shadow-sm border-b border-gray-200 dark:border-gray-700 transition-colors duration-300">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex items-center justify-between h-16">
+              <div className="flex items-center gap-4">
+                <div>
+                  <h1 className="text-xl font-semibold text-gray-900 dark:text-gray-100 transition-colors duration-300">Gary Vee Network</h1>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 transition-colors duration-300">Enterprise relationship management</p>
+                </div>
               </div>
-            </div>
             
             <div className="flex items-center gap-2">
+              {/* User Info */}
+              {user && (
+                <div className="flex items-center gap-2 mr-4">
+                  <Badge className={`text-xs ${getTeamColor(user.team)}`}>
+                    {user.team}
+                  </Badge>
+                  <span className="text-sm text-gray-700 dark:text-gray-300">
+                    {user.username}
+                  </span>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={logout}
+                    className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                  >
+                    Logout
+                  </Button>
+                </div>
+              )}
+              
               {/* Theme Toggle */}
               <ThemeToggle />
               
@@ -427,6 +453,7 @@ export default function Home() {
         onAddConnection={handleAddConnection}
         onRemoveConnection={handleRemoveConnection}
       />
-    </div>
+      </div>
+    </ProtectedRoute>
   )
 }

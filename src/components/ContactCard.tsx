@@ -5,8 +5,10 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { getTierColor, getTierBadge } from "@/lib/constants"
 import type { Contact } from "@/lib/types"
-import { Mail, Phone, Users, User, Baby, Heart, Network } from "lucide-react"
+import { Mail, Phone, Users, User, Baby, Heart, Network, Shield } from "lucide-react"
 import * as React from "react"
+import { useAuth } from "./AuthProvider"
+import { canSeeField, canEditContact, canDeleteContact } from "@/lib/auth"
 
 export interface ContactCardProps {
   contact: Contact
@@ -16,8 +18,14 @@ export interface ContactCardProps {
 }
 
 export const ContactCard: React.FC<ContactCardProps> = ({ contact, onEdit, onDelete, onManageConnections }) => {
+  const { user } = useAuth()
   const tierColor = getTierColor(contact.tier)
   const tierBadge = getTierBadge(contact.tier)
+  
+  // Permission checks
+  const canSeePhone = canSeeField(user, 'phone', contact.tier)
+  const canEdit = canEditContact(user, contact.tier)
+  const canDelete = canDeleteContact(user)
   return (
     <Card
       className={`relative flex flex-col sm:flex-row items-start sm:items-center gap-4 p-6 shadow-md border-l-4 transition-all duration-200 hover:scale-[1.01] hover:shadow-lg dark:shadow-gray-900/20 ${tierColor}`}
@@ -36,12 +44,16 @@ export const ContactCard: React.FC<ContactCardProps> = ({ contact, onEdit, onDel
               <Network className="w-4 h-4 mr-1" />
               {contact.connections?.length || 0}
             </Button>
-            <Button size="sm" variant="outline" onClick={() => onEdit?.(contact)} aria-label="Edit contact">
-              Edit
-            </Button>
-            <Button size="sm" variant="destructive" onClick={() => onDelete?.(contact)} aria-label="Delete contact">
-              Delete
-            </Button>
+            {canEdit && (
+              <Button size="sm" variant="outline" onClick={() => onEdit?.(contact)} aria-label="Edit contact">
+                Edit
+              </Button>
+            )}
+            {canDelete && (
+              <Button size="sm" variant="destructive" onClick={() => onDelete?.(contact)} aria-label="Delete contact">
+                Delete
+              </Button>
+            )}
           </div>
         </CardHeader>
         <CardContent className="p-0 pt-2 flex flex-col gap-2 text-sm text-gray-700 dark:text-gray-300 transition-colors duration-300">
@@ -50,7 +62,17 @@ export const ContactCard: React.FC<ContactCardProps> = ({ contact, onEdit, onDel
               <span className="flex items-center gap-1"><Mail className="w-4 h-4 text-gray-400 dark:text-gray-500 transition-colors duration-300" />{contact.email}</span>
             )}
             {contact.phone && (
-              <span className="flex items-center gap-1"><Phone className="w-4 h-4 text-gray-400 dark:text-gray-500 transition-colors duration-300" />{contact.phone}</span>
+              <span className="flex items-center gap-1">
+                <Phone className="w-4 h-4 text-gray-400 dark:text-gray-500 transition-colors duration-300" />
+                {canSeePhone ? (
+                  contact.phone
+                ) : (
+                  <span className="flex items-center gap-1 text-gray-500 dark:text-gray-400">
+                    <Shield className="w-3 h-3" />
+                    [Restricted]
+                  </span>
+                )}
+              </span>
             )}
             <span className="flex items-center gap-1"><Users className="w-4 h-4 text-gray-400 dark:text-gray-500 transition-colors duration-300" />{contact.relationshipToGary}</span>
           </div>
