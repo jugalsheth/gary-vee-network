@@ -9,6 +9,7 @@ import { Mail, Phone, Users, User, Baby, Heart, Network, Shield } from "lucide-r
 import * as React from "react"
 import { useAuth } from "./AuthProvider"
 import { canSeeField, canEditContact, canDeleteContact } from "@/lib/auth"
+import { ContactAvatar } from "./ContactAvatar"
 
 export interface ContactCardProps {
   contact: Contact
@@ -30,11 +31,18 @@ export const ContactCard: React.FC<ContactCardProps> = ({ contact, onEdit, onDel
     <Card
       className={`relative flex flex-col sm:flex-row items-start sm:items-center gap-4 p-6 shadow-md border-l-4 transition-all duration-200 hover:scale-[1.01] hover:shadow-lg dark:shadow-gray-900/20 ${tierColor}`}
     >
+      {/* Contact Avatar */}
+      <ContactAvatar 
+        name={contact.name} 
+        tier={contact.tier} 
+        size="md" 
+        className="flex-shrink-0"
+      />
+      
       <div className="flex flex-col gap-2 flex-1 w-full">
         <CardHeader className="p-0 flex flex-row items-center justify-between w-full">
           <div className="flex items-center gap-2">
             <CardTitle className="text-lg font-bold text-gray-900 dark:text-gray-100 transition-colors duration-300 flex items-center gap-2">
-              <User className="w-5 h-5 text-gray-400 dark:text-gray-500 transition-colors duration-300" />
               {contact.name}
             </CardTitle>
             <Badge className={`ml-2 text-xs font-semibold px-2 py-1 rounded ${tierBadge}`}>{contact.tier === 'tier1' ? 'Tier 1' : contact.tier === 'tier2' ? 'Tier 2' : 'Tier 3'}</Badge>

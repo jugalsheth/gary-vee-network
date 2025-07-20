@@ -16,6 +16,7 @@ import { saveContacts, getContacts } from '@/lib/storage'
 import { Plus, Camera, FileText } from 'lucide-react'
 import { ImageUpload } from './ImageUpload'
 import { ExtractedDataPreview } from './ExtractedDataPreview'
+import { ContactAvatar } from './ContactAvatar'
 import type { ExtractedData } from '@/lib/ocr'
 
 const ContactSchema = z.object({
@@ -153,6 +154,26 @@ export function AddContactModal({ open, onOpenChange, onAdd }: AddContactModalPr
             </Button>
           </div>
 
+          {/* Avatar Preview */}
+          {(entryMode === 'manual' || showDataPreview) && form.watch('name') && (
+            <div className="flex items-center gap-4 p-4 bg-gray-50 dark:bg-gray-900/50 rounded-lg border border-gray-200 dark:border-gray-700 mb-6">
+              <ContactAvatar 
+                name={form.watch('name')} 
+                tier={form.watch('tier')} 
+                size="lg" 
+              />
+              <div>
+                <h3 className="font-semibold text-gray-900 dark:text-gray-100">
+                  {form.watch('name')}
+                </h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  {form.watch('tier') === 'tier1' ? 'Tier 1 (Pink)' : 
+                   form.watch('tier') === 'tier2' ? 'Tier 2 (Yellow)' : 'Tier 3 (Green)'}
+                </p>
+              </div>
+            </div>
+          )}
+
           {/* Error Display */}
           {error && (
             <div className="p-3 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800 rounded-md">
@@ -191,7 +212,19 @@ export function AddContactModal({ open, onOpenChange, onAdd }: AddContactModalPr
                 <FormItem>
                   <FormLabel>Name *</FormLabel>
                   <FormControl>
-                    <Input {...field} placeholder="Full name" />
+                    <div className="flex items-center gap-3">
+                      <Input {...field} placeholder="Full name" />
+                      {field.value && (
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm text-gray-500 dark:text-gray-400">Avatar:</span>
+                          <ContactAvatar 
+                            name={field.value} 
+                            tier={form.watch('tier')} 
+                            size="sm" 
+                          />
+                        </div>
+                      )}
+                    </div>
                   </FormControl>
                   {form.formState.errors.name && <span className="text-red-500 dark:text-red-400 text-xs transition-colors duration-300">{form.formState.errors.name.message}</span>}
                 </FormItem>
