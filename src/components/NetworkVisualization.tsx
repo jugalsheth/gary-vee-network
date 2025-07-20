@@ -56,13 +56,25 @@ export function NetworkVisualization({
   const [zoom, setZoom] = React.useState(1)
   const [isLoading, setIsLoading] = React.useState(false)
 
+  // Filter out duplicate contacts to prevent key conflicts
+  const uniqueContacts = React.useMemo(() => {
+    const seen = new Set<string>()
+    return contacts.filter(contact => {
+      if (seen.has(contact.id)) {
+        return false
+      }
+      seen.add(contact.id)
+      return true
+    })
+  }, [contacts])
+
   // Build network data when contacts change
   React.useEffect(() => {
-    if (contacts.length > 0) {
-      const data = buildNetworkGraph(contacts)
+    if (uniqueContacts.length > 0) {
+      const data = buildNetworkGraph(uniqueContacts)
       setNetworkData(data)
     }
-  }, [contacts])
+  }, [uniqueContacts])
 
   // D3 visualization
   React.useEffect(() => {
@@ -419,8 +431,8 @@ export function NetworkVisualization({
                   <SelectValue placeholder="Select source contact" />
                 </SelectTrigger>
                 <SelectContent>
-                  {contacts.map(contact => (
-                    <SelectItem key={contact.id} value={contact.id}>
+                  {uniqueContacts.map((contact, index) => (
+                    <SelectItem key={`source-${contact.id}-${index}`} value={contact.id}>
                       {contact.name} ({contact.tier})
                     </SelectItem>
                   ))}
@@ -434,8 +446,8 @@ export function NetworkVisualization({
                   <SelectValue placeholder="Select target contact" />
                 </SelectTrigger>
                 <SelectContent>
-                  {contacts.map(contact => (
-                    <SelectItem key={contact.id} value={contact.id}>
+                  {uniqueContacts.map((contact, index) => (
+                    <SelectItem key={`target-${contact.id}-${index}`} value={contact.id}>
                       {contact.name} ({contact.tier})
                     </SelectItem>
                   ))}
