@@ -46,7 +46,7 @@ export const demoUsers = [
     id: '1',
     username: 'demo-cait',
     email: 'cait@garyvee.com',
-    password: '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', // password123
+    password: '$2b$10$g2u/9lbG9CHDqXhH7jrRqe6m.66uSNUxlBkU4UvtmdHEiuofnm/ru', // password123
     team: 'CAIT' as Team,
     role: 'editor' as Role,
     permissions: [
@@ -73,7 +73,7 @@ export const demoUsers = [
     id: '2',
     username: 'demo-teamg',
     email: 'teamg@garyvee.com',
-    password: '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', // password123
+    password: '$2b$10$g2u/9lbG9CHDqXhH7jrRqe6m.66uSNUxlBkU4UvtmdHEiuofnm/ru', // password123
     team: 'TeamG' as Team,
     role: 'admin' as Role,
     permissions: [
