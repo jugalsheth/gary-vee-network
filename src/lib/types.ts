@@ -33,6 +33,8 @@ export interface Contact {
   notes?: string // Primary AI context field
   socialHandles?: SocialHandles
   connections?: Connection[] // Network relationships
+  voiceNotes?: string[] // Array of voice note IDs
+  hasVoiceNotes?: boolean
   createdAt: Date | string // Can be string when retrieved from localStorage
   updatedAt: Date | string // Can be string when retrieved from localStorage
   addedBy: string

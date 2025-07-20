@@ -19,6 +19,7 @@ import { ExtractedDataPreview } from './ExtractedDataPreview'
 import { ContactAvatar } from './ContactAvatar'
 import { LoadingButton } from './LoadingButton'
 import { SuccessButton } from './SuccessButton'
+import { VoiceRecorder } from './VoiceRecorder'
 import { showSuccessToast, showErrorToast } from '@/lib/toast'
 import type { ExtractedData } from '@/lib/ocr'
 
@@ -342,6 +343,14 @@ export function AddContactModal({ open, onOpenChange, onAdd }: AddContactModalPr
                     <Textarea {...field} placeholder="Add notes/context for this contact" rows={3} />
                   </FormControl>
                   {form.formState.errors.notes && <span className="text-red-500 text-xs">{form.formState.errors.notes.message}</span>}
+                  <VoiceRecorder
+                    onTranscriptionComplete={(text) => {
+                      const currentNotes = field.value || ''
+                      const separator = currentNotes ? '\n\n' : ''
+                      field.onChange(currentNotes + separator + `🎤 Voice Note: ${text}`)
+                    }}
+                    className="mt-3"
+                  />
                 </FormItem>
               )} />
               <div className="flex justify-end">

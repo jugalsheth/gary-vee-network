@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { getTierColor, getTierBadge } from "@/lib/constants"
 import type { Contact } from "@/lib/types"
-import { Mail, Phone, Users, User, Baby, Heart, Network, Shield } from "lucide-react"
+import { Mail, Phone, Users, User, Baby, Heart, Network, Shield, Volume2 } from "lucide-react"
 import * as React from "react"
 import { useAuth } from "./AuthProvider"
 import { canSeeField, canEditContact, canDeleteContact } from "@/lib/auth"
@@ -95,6 +95,12 @@ export const ContactCard: React.FC<ContactCardProps> = ({ contact, onEdit, onDel
                 <span className="flex items-center gap-1">
                   <span className="w-2 h-2 rounded-full bg-gray-400 dark:bg-gray-500 inline-block transition-colors duration-300" />
                   {contact.location}
+                </span>
+              )}
+              {contact.hasVoiceNotes && (
+                <span className="flex items-center gap-1">
+                  <Volume2 className="w-4 h-4 text-blue-500 dark:text-blue-400 transition-colors duration-300" />
+                  <span className="text-blue-600 dark:text-blue-400 text-xs">Voice notes</span>
                 </span>
               )}
             </div>

@@ -61,6 +61,13 @@ export const showSuccessToast = {
     })
   },
 
+  voiceNoteSaved: () => {
+    toast.success('🎤 Voice note saved!', {
+      description: 'Your voice note has been transcribed and saved',
+      ...TOAST_CONFIG,
+    })
+  },
+
   loginSuccess: (username: string, team: string) => {
     toast.success('👋 Welcome back!', {
       description: `Signed in as ${username} (${team})`,
