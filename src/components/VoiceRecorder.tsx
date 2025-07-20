@@ -191,12 +191,14 @@ export function VoiceRecorder({
               </div>
 
               {/* Live Transcript */}
-              {recordingState.transcript && (
-                <div className="p-3 bg-blue-50 border border-blue-200 rounded-md">
-                  <p className="text-xs text-blue-800 font-medium mb-1">Live Transcript:</p>
-                  <p className="text-sm text-blue-700">{recordingState.transcript}</p>
-                </div>
-              )}
+              <div className="p-3 bg-blue-50 border border-blue-200 rounded-md">
+                <p className="text-xs text-blue-800 font-medium mb-1">
+                  {recordingState.transcript ? 'Live Transcript:' : 'Listening...'}
+                </p>
+                <p className="text-sm text-blue-700">
+                  {recordingState.transcript || 'Start speaking to see transcription...'}
+                </p>
+              </div>
 
               {/* Recording Controls */}
               <div className="flex space-x-2">

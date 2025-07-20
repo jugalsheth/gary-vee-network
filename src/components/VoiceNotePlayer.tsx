@@ -146,11 +146,13 @@ export function VoiceNotePlayer({ voiceNote, onDelete, className }: VoiceNotePla
           )}
 
           {/* Hidden Audio Element */}
-          <audio
-            ref={audioRef}
-            src={URL.createObjectURL(voiceNote.audioBlob)}
-            preload="metadata"
-          />
+          {voiceNote.audioBlob && (
+            <audio
+              ref={audioRef}
+              src={URL.createObjectURL(voiceNote.audioBlob)}
+              preload="metadata"
+            />
+          )}
         </div>
       </CardContent>
     </Card>

@@ -1,11 +1,13 @@
 // Voice Notes Types
 export interface VoiceNote {
   id: string
-  audioBlob: Blob
+  audioUrl?: string // URL to audio file (for production)
+  audioBlob?: Blob // Blob for MVP/localStorage
   transcript: string
   duration: number
   createdAt: Date
   contactId: string
+  fileSize?: number // For storage tracking
 }
 
 export interface RecordingState {
@@ -36,6 +38,7 @@ export class VoiceRecorder {
   private stream: MediaStream | null = null
   private audioChunks: Blob[] = []
   private startTime: number = 0
+  private currentTranscript: string = ''
 
   constructor() {
     this.audioChunks = []
@@ -60,6 +63,7 @@ export class VoiceRecorder {
       this.mediaRecorder = new MediaRecorder(this.stream)
       this.audioChunks = []
       this.startTime = Date.now()
+      this.currentTranscript = ''
 
       // Set up audio analysis for level monitoring
       this.audioContext = new AudioContext()
@@ -126,7 +130,7 @@ export class VoiceRecorder {
           // Create audio blob
           const audioBlob = new Blob(this.audioChunks, { type: 'audio/wav' })
           const duration = Date.now() - this.startTime
-          const transcript = this.recognition?.transcript || ''
+          const transcript = this.currentTranscript || ''
 
           resolve({ audioBlob, transcript, duration })
         } catch (error) {
@@ -157,6 +161,7 @@ export class VoiceRecorder {
       for (let i = event.resultIndex; i < event.results.length; i++) {
         transcript += event.results[i][0].transcript
       }
+      this.currentTranscript = transcript
       onTranscriptUpdate(transcript)
     }
 
@@ -210,7 +215,20 @@ export class VoiceRecorder {
   }
 }
 
-// Voice Note Storage
+// Production-ready voice note storage (Snowflake compatible)
+export interface VoiceNoteStorage {
+  // For MVP (localStorage)
+  saveVoiceNoteLocal: (contactId: string, voiceNote: VoiceNote) => void
+  getVoiceNotesLocal: (contactId: string) => VoiceNote[]
+  deleteVoiceNoteLocal: (contactId: string, voiceNoteId: string) => void
+  
+  // For Production (Snowflake)
+  saveVoiceNoteToCloud: (contactId: string, voiceNote: VoiceNote) => Promise<void>
+  getVoiceNotesFromCloud: (contactId: string) => Promise<VoiceNote[]>
+  deleteVoiceNoteFromCloud: (contactId: string, voiceNoteId: string) => Promise<void>
+}
+
+// MVP Storage (localStorage)
 export const saveVoiceNote = (contactId: string, voiceNote: VoiceNote): void => {
   try {
     const voiceNotes = getVoiceNotes(contactId)
@@ -241,7 +259,70 @@ export const deleteVoiceNote = (contactId: string, voiceNoteId: string): void =>
   }
 }
 
+// Production Storage (Snowflake-ready)
+export const saveVoiceNoteToCloud = async (contactId: string, voiceNote: VoiceNote): Promise<void> => {
+  try {
+    // Convert Blob to base64 for storage
+    if (voiceNote.audioBlob) {
+      const base64Audio = await blobToBase64(voiceNote.audioBlob)
+      
+      // Create Snowflake-compatible record
+      const snowflakeRecord = {
+        id: voiceNote.id,
+        contact_id: contactId,
+        transcript: voiceNote.transcript,
+        duration: voiceNote.duration,
+        audio_data: base64Audio, // Store as base64 string
+        file_size: voiceNote.audioBlob.size,
+        created_at: voiceNote.createdAt.toISOString(),
+        updated_at: new Date().toISOString()
+      }
+      
+      // TODO: Replace with actual Snowflake API call
+      console.log('Saving to Snowflake:', snowflakeRecord)
+      
+      // For now, also save locally
+      saveVoiceNote(contactId, voiceNote)
+    }
+  } catch (error) {
+    console.error('Error saving voice note to cloud:', error)
+    throw error
+  }
+}
+
+export const getVoiceNotesFromCloud = async (contactId: string): Promise<VoiceNote[]> => {
+  try {
+    // TODO: Replace with actual Snowflake API call
+    console.log('Fetching voice notes from Snowflake for contact:', contactId)
+    
+    // For now, return local storage
+    return getVoiceNotes(contactId)
+  } catch (error) {
+    console.error('Error loading voice notes from cloud:', error)
+    return []
+  }
+}
+
 // Utility functions
+export const blobToBase64 = (blob: Blob): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => resolve(reader.result as string)
+    reader.onerror = reject
+    reader.readAsDataURL(blob)
+  })
+}
+
+export const base64ToBlob = (base64: string): Blob => {
+  const byteCharacters = atob(base64.split(',')[1])
+  const byteNumbers = new Array(byteCharacters.length)
+  for (let i = 0; i < byteCharacters.length; i++) {
+    byteNumbers[i] = byteCharacters.charCodeAt(i)
+  }
+  const byteArray = new Uint8Array(byteNumbers)
+  return new Blob([byteArray], { type: 'audio/wav' })
+}
+
 export const formatDuration = (milliseconds: number): string => {
   const seconds = Math.floor(milliseconds / 1000)
   const minutes = Math.floor(seconds / 60)
@@ -263,4 +344,23 @@ export const isVoiceRecordingSupported = (): boolean => {
   return !!(navigator.mediaDevices && 
            'getUserMedia' in navigator.mediaDevices && 
            ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window))
-} 
+}
+
+// Snowflake Schema for Voice Notes
+export const SNOWFLAKE_VOICE_NOTES_SCHEMA = `
+CREATE TABLE voice_notes (
+  id VARCHAR(36) PRIMARY KEY,
+  contact_id VARCHAR(36) NOT NULL,
+  transcript TEXT,
+  duration INTEGER, -- milliseconds
+  audio_data TEXT, -- base64 encoded audio
+  file_size INTEGER, -- bytes
+  created_at TIMESTAMP_NTZ DEFAULT CURRENT_TIMESTAMP(),
+  updated_at TIMESTAMP_NTZ DEFAULT CURRENT_TIMESTAMP(),
+  FOREIGN KEY (contact_id) REFERENCES contacts(id)
+);
+
+-- Index for fast lookups
+CREATE INDEX idx_voice_notes_contact_id ON voice_notes(contact_id);
+CREATE INDEX idx_voice_notes_created_at ON voice_notes(created_at);
+` 

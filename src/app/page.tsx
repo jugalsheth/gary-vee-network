@@ -18,9 +18,10 @@ import { useAuth } from '@/components/AuthProvider'
 import { NetworkVisualization } from '@/components/NetworkVisualization'
 import { ConnectionModal } from '@/components/ConnectionModal'
 import { NetworkInsights } from '@/components/NetworkInsights'
+import { VoiceNotesDemo } from '@/components/VoiceNotesDemo'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Plus, Upload, Users, Grid, List, Network, BarChart3 } from 'lucide-react'
+import { Plus, Upload, Users, Grid, List, Network, BarChart3, Mic } from 'lucide-react'
 import { getTeamColor } from '@/lib/auth'
 import { getContacts, addContact, updateContact, deleteContact, saveContacts } from '@/lib/storage'
 import { showSuccessToast, showErrorToast, trackContactMilestone } from '@/lib/toast'
@@ -37,6 +38,7 @@ export default function Home() {
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [showImportModal, setShowImportModal] = useState(false)
   const [showConnectionModal, setShowConnectionModal] = useState(false)
+  const [showVoiceNotesDemo, setShowVoiceNotesDemo] = useState(false)
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null)
   const [selectedContacts, setSelectedContacts] = useState<Contact[]>([])
   const [viewMode, setViewMode] = useState<'grid' | 'bulk' | 'network' | 'insights'>('grid')
@@ -326,6 +328,16 @@ export default function Home() {
               
               <ExportButton contacts={filteredContacts} />
               
+              {/* Voice Notes Demo Button */}
+              <Button
+                onClick={() => setShowVoiceNotesDemo(true)}
+                variant="outline"
+                className="bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100"
+              >
+                <Mic className="w-4 h-4" />
+                Voice Demo
+              </Button>
+              
               {/* Add Contact Button */}
               <Button
                 onClick={() => setShowAddModal(true)}
@@ -447,12 +459,31 @@ export default function Home() {
       {/* AI Chat */}
       <AIChat contacts={filteredContacts} />
 
-      {/* Modals */}
-      <AddContactModal
-        open={showAddModal}
-        onOpenChange={setShowAddModal}
-        onAdd={handleAddContact}
-      />
+              {/* Modals */}
+        <AddContactModal
+          open={showAddModal}
+          onOpenChange={setShowAddModal}
+          onAdd={handleAddContact}
+        />
+        
+        {/* Voice Notes Demo Modal */}
+        {showVoiceNotesDemo && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="flex items-center justify-between p-6 border-b">
+                <h2 className="text-xl font-semibold">Voice Notes Demo</h2>
+                <Button
+                  variant="ghost"
+                  onClick={() => setShowVoiceNotesDemo(false)}
+                  className="h-8 w-8 p-0"
+                >
+                  ×
+                </Button>
+              </div>
+              <VoiceNotesDemo />
+            </div>
+          </div>
+        )}
 
       <EditContactModal
         open={showEditModal}
