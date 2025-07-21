@@ -30,10 +30,10 @@ export const ContactCard: React.FC<ContactCardProps> = ({ contact, onEdit, onDel
   
   return (
     <Card
-      className={`relative flex flex-col gap-4 p-6 glass-card rounded-modern shadow-modern transition-modern hover:scale-[1.02] hover:shadow-modern-hover border-l-4 ${tierColor}`}
+      className={`premium-card border-l-4 ${tierColor}`}
     >
       {/* Main Content Area */}
-      <div className="flex items-start gap-4">
+      <div className="flex items-start gap-6">
         {/* Contact Avatar */}
         <ContactAvatar 
           name={contact.name} 
@@ -46,7 +46,7 @@ export const ContactCard: React.FC<ContactCardProps> = ({ contact, onEdit, onDel
         <div className="flex-1 min-w-0">
           <CardHeader className="p-0 pb-3">
             <div className="flex items-center gap-2 flex-wrap">
-              <CardTitle className="text-lg font-bold text-gray-900 dark:text-gray-100 transition-colors duration-300">
+              <CardTitle className="card-title text-gray-900 dark:text-gray-100 transition-colors duration-300">
                 {contact.name}
               </CardTitle>
               <Badge className={`text-xs font-semibold px-2 py-1 rounded ${tierBadge}`}>
@@ -55,7 +55,7 @@ export const ContactCard: React.FC<ContactCardProps> = ({ contact, onEdit, onDel
             </div>
           </CardHeader>
           
-          <CardContent className="p-0 flex flex-col gap-2 text-sm text-gray-700 dark:text-gray-300 transition-colors duration-300">
+          <CardContent className="p-0 flex flex-col gap-2 card-meta transition-colors duration-300">
             <div className="flex flex-wrap gap-4">
               {contact.email && (
                 <span className="flex items-center gap-1">
