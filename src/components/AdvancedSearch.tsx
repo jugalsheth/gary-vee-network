@@ -177,7 +177,7 @@ export function AdvancedSearch({ contacts, onFilterChange, activeFilters, onActi
           value={activeFilters.searchText}
           onChange={(e) => handleSearchChange(e.target.value)}
           placeholder="Search contacts by name, email, notes, location..."
-          className="pl-10 pr-4"
+          className="pl-10 pr-4 glass-card rounded-modern shadow-modern transition-modern focus:shadow-modern-hover"
         />
       </div>
 
@@ -206,7 +206,7 @@ export function AdvancedSearch({ contacts, onFilterChange, activeFilters, onActi
             </Button>
           </CollapsibleTrigger>
           <CollapsibleContent className="mt-2">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 p-4 bg-gray-50 rounded-lg border">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 p-4 glass-card rounded-modern shadow-modern">
               {/* Has Kids Filter */}
               <div className="flex items-center space-x-2">
                 <Checkbox

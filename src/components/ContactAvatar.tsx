@@ -22,13 +22,13 @@ export function ContactAvatar({ name, tier, size = 'md', className }: ContactAva
   const getTierColor = (tier: 'tier1' | 'tier2' | 'tier3'): string => {
     switch (tier) {
       case 'tier1':
-        return 'bg-pink-500 text-white shadow-pink-200'
+        return 'bg-gradient-to-br from-pink-500 to-purple-600 text-white shadow-lg shadow-pink-200/50'
       case 'tier2':
-        return 'bg-yellow-500 text-white shadow-yellow-200'
+        return 'bg-gradient-to-br from-yellow-500 to-orange-600 text-white shadow-lg shadow-yellow-200/50'
       case 'tier3':
-        return 'bg-green-500 text-white shadow-green-200'
+        return 'bg-gradient-to-br from-green-500 to-teal-600 text-white shadow-lg shadow-green-200/50'
       default:
-        return 'bg-gray-500 text-white shadow-gray-200'
+        return 'bg-gradient-to-br from-gray-500 to-gray-600 text-white shadow-lg shadow-gray-200/50'
     }
   }
 
@@ -53,7 +53,7 @@ export function ContactAvatar({ name, tier, size = 'md', className }: ContactAva
   return (
     <div
       className={cn(
-        'flex items-center justify-center rounded-full font-semibold transition-all duration-200 hover:scale-105 hover:shadow-lg',
+        'flex items-center justify-center rounded-full font-bold transition-modern hover:scale-110 hover:shadow-xl float',
         tierColor,
         sizeClasses,
         className

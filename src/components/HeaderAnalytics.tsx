@@ -40,12 +40,12 @@ export function HeaderAnalytics({ contacts }: HeaderAnalyticsProps) {
     <div className="flex items-center gap-4">
       {/* Total Contacts */}
       <div className="flex items-center gap-2">
-        <Card className="border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-700/50 backdrop-blur-sm transition-colors duration-300">
+        <Card className="glass-card rounded-modern shadow-modern transition-modern hover:shadow-modern-hover">
           <CardContent className="p-3 px-4">
             <div className="flex items-center gap-3">
-              <Users className="w-5 h-5 text-blue-500 dark:text-blue-400" />
+              <Users className="w-5 h-5 text-blue-500 dark:text-blue-400 breathe" />
               <div>
-                <span className="text-lg font-bold text-gray-900 dark:text-gray-100 transition-colors duration-300">
+                <span className="text-lg font-bold gradient-text transition-colors duration-300">
                   {metrics.total}
                 </span>
                 <span className="text-sm text-gray-500 dark:text-gray-400 transition-colors duration-300 ml-1">
@@ -59,15 +59,15 @@ export function HeaderAnalytics({ contacts }: HeaderAnalyticsProps) {
 
       {/* Tier 1 Count */}
       <div className="flex items-center gap-2">
-        <Card className="border-pink-200 dark:border-pink-800 bg-pink-50/50 dark:bg-pink-950/20 backdrop-blur-sm transition-colors duration-300">
+        <Card className="glass-card rounded-modern shadow-modern transition-modern hover:shadow-modern-hover">
           <CardContent className="p-3 px-4">
             <div className="flex items-center gap-3">
-              <UserCheck className="w-5 h-5 text-pink-500 dark:text-pink-400" />
+              <UserCheck className="w-5 h-5 text-pink-500 dark:text-pink-400 breathe" />
               <div>
                 <span className="text-lg font-bold text-gray-900 dark:text-gray-100 transition-colors duration-300">
                   {metrics.tier1Count}
                 </span>
-                <Badge className="bg-pink-500 dark:bg-pink-400 text-white text-xs px-2 py-0.5 ml-1">
+                <Badge className="bg-gradient-to-r from-pink-500 to-purple-500 text-white text-xs px-2 py-0.5 ml-1 rounded-full">
                   Tier 1
                 </Badge>
               </div>
@@ -78,15 +78,15 @@ export function HeaderAnalytics({ contacts }: HeaderAnalyticsProps) {
 
       {/* Tier 2 Count */}
       <div className="flex items-center gap-2">
-        <Card className="border-yellow-200 dark:border-yellow-800 bg-yellow-50/50 dark:bg-yellow-950/20 backdrop-blur-sm transition-colors duration-300">
+        <Card className="glass-card rounded-modern shadow-modern transition-modern hover:shadow-modern-hover">
           <CardContent className="p-3 px-4">
             <div className="flex items-center gap-3">
-              <UserCheck className="w-5 h-5 text-yellow-500 dark:text-yellow-400" />
+              <UserCheck className="w-5 h-5 text-yellow-500 dark:text-yellow-400 breathe" />
               <div>
                 <span className="text-lg font-bold text-gray-900 dark:text-gray-100 transition-colors duration-300">
                   {metrics.tier2Count}
                 </span>
-                <Badge className="bg-yellow-500 dark:bg-yellow-400 text-white text-xs px-2 py-0.5 ml-1">
+                <Badge className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white text-xs px-2 py-0.5 ml-1 rounded-full">
                   Tier 2
                 </Badge>
               </div>
@@ -97,15 +97,15 @@ export function HeaderAnalytics({ contacts }: HeaderAnalyticsProps) {
 
       {/* Tier 3 Count */}
       <div className="flex items-center gap-2">
-        <Card className="border-green-200 dark:border-green-800 bg-green-50/50 dark:bg-green-950/20 backdrop-blur-sm transition-colors duration-300">
+        <Card className="glass-card rounded-modern shadow-modern transition-modern hover:shadow-modern-hover">
           <CardContent className="p-3 px-4">
             <div className="flex items-center gap-3">
-              <UserCheck className="w-5 h-5 text-green-500 dark:text-green-400" />
+              <UserCheck className="w-5 h-5 text-green-500 dark:text-green-400 breathe" />
               <div>
                 <span className="text-lg font-bold text-gray-900 dark:text-gray-100 transition-colors duration-300">
                   {metrics.tier3Count}
                 </span>
-                <Badge className="bg-green-500 dark:bg-green-400 text-white text-xs px-2 py-0.5 ml-1">
+                <Badge className="bg-gradient-to-r from-green-500 to-teal-500 text-white text-xs px-2 py-0.5 ml-1 rounded-full">
                   Tier 3
                 </Badge>
               </div>
@@ -117,10 +117,10 @@ export function HeaderAnalytics({ contacts }: HeaderAnalyticsProps) {
       {/* Growth Indicator */}
       {metrics.recentGrowth > 0 && (
         <div className="flex items-center gap-2">
-          <Card className="border-emerald-200 dark:border-emerald-800 bg-emerald-50/50 dark:bg-emerald-950/20 backdrop-blur-sm transition-colors duration-300">
+          <Card className="glass-card rounded-modern shadow-modern transition-modern hover:shadow-modern-hover pulse-glow">
             <CardContent className="p-3 px-4">
               <div className="flex items-center gap-3">
-                <TrendingUp className="w-5 h-5 text-emerald-500 dark:text-emerald-400" />
+                <TrendingUp className="w-5 h-5 text-emerald-500 dark:text-emerald-400 breathe" />
                 <div>
                   <span className="text-lg font-bold text-emerald-600 dark:text-emerald-400 transition-colors duration-300">
                     ↗ +{metrics.recentGrowth}

@@ -30,7 +30,7 @@ export const ContactCard: React.FC<ContactCardProps> = ({ contact, onEdit, onDel
   
   return (
     <Card
-      className={`relative flex flex-col gap-4 p-6 shadow-md border-l-4 transition-all duration-200 hover:scale-[1.01] hover:shadow-lg dark:shadow-gray-900/20 ${tierColor}`}
+      className={`relative flex flex-col gap-4 p-6 glass-card rounded-modern shadow-modern transition-modern hover:scale-[1.02] hover:shadow-modern-hover border-l-4 ${tierColor}`}
     >
       {/* Main Content Area */}
       <div className="flex items-start gap-4">
@@ -110,7 +110,7 @@ export const ContactCard: React.FC<ContactCardProps> = ({ contact, onEdit, onDel
                 <Badge 
                   key={i} 
                   variant="secondary" 
-                  className="text-xs px-2 py-0.5 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-700 transition-colors duration-300"
+                  className="text-xs px-2 py-0.5 glass-card rounded-full border border-gray-200/50 dark:border-gray-700/50 text-gray-600 dark:text-gray-300 transition-modern hover:scale-105"
                 >
                   {interest}
                 </Badge>
@@ -131,6 +131,7 @@ export const ContactCard: React.FC<ContactCardProps> = ({ contact, onEdit, onDel
           variant="outline" 
           onClick={() => onManageConnections?.(contact)} 
           aria-label="Manage connections"
+          className="glass-card rounded-modern transition-modern hover:shadow-modern-hover"
         >
           <Network className="w-4 h-4 mr-1" />
           {contact.connections?.length || 0}
@@ -141,6 +142,7 @@ export const ContactCard: React.FC<ContactCardProps> = ({ contact, onEdit, onDel
             variant="outline" 
             onClick={() => onEdit?.(contact)} 
             aria-label="Edit contact"
+            className="glass-card rounded-modern transition-modern hover:shadow-modern-hover"
           >
             Edit
           </Button>
@@ -151,6 +153,7 @@ export const ContactCard: React.FC<ContactCardProps> = ({ contact, onEdit, onDel
             variant="destructive" 
             onClick={() => onDelete?.(contact)} 
             aria-label="Delete contact"
+            className="rounded-modern transition-modern hover:shadow-modern-hover"
           >
             Delete
           </Button>

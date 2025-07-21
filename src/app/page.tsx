@@ -245,12 +245,12 @@ export default function Home() {
     <ProtectedRoute>
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
         {/* Header */}
-        <header className="bg-white dark:bg-gray-900 shadow-sm border-b border-gray-200 dark:border-gray-700 transition-colors duration-300">
+        <header className="glass-card shadow-modern border-b border-gray-200/50 dark:border-gray-700/50 transition-colors duration-300">
           <div className="max-w-[95%] mx-auto px-2 sm:px-4 lg:px-6">
-            <div className="flex items-center justify-between h-16">
+            <div className="flex items-center justify-between h-20">
               <div className="flex items-center gap-4">
                 <div>
-                  <h1 className="text-xl font-semibold text-gray-900 dark:text-gray-100 transition-colors duration-300">Gary Vee Network</h1>
+                  <h1 className="text-2xl font-bold gradient-text transition-colors duration-300">Gary Vee Network</h1>
                   <p className="text-sm text-gray-500 dark:text-gray-400 transition-colors duration-300">Enterprise relationship management</p>
                 </div>
               </div>
@@ -352,10 +352,10 @@ export default function Home() {
       </header>
 
       {/* Analytics Bar */}
-      <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 transition-colors duration-300">
-        <div className="max-w-[95%] mx-auto px-2 sm:px-4 lg:px-6 py-4">
+      <div className="glass-card border-b border-gray-200/50 dark:border-gray-700/50 transition-colors duration-300">
+        <div className="max-w-[95%] mx-auto px-2 sm:px-4 lg:px-6 py-6">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-6">
               {/* Desktop Analytics */}
               <div className="hidden md:block">
                 <HeaderAnalytics contacts={contacts} />
@@ -376,8 +376,8 @@ export default function Home() {
       </div>
 
       {/* Main Content */}
-      <main className="max-w-[95%] mx-auto px-2 sm:px-4 lg:px-6 py-6">
-        <div className="space-y-6">
+      <main className="max-w-[95%] mx-auto px-2 sm:px-4 lg:px-6 py-8">
+        <div className="space-y-8">
           {/* Search and Filters */}
           <AdvancedSearch
             contacts={contacts}
