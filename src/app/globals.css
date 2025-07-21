@@ -266,3 +266,10 @@
     50% { transform: translateY(-10px); }
   }
 }
+
+/* Auto-fit grid for responsive, symmetrical card layout */
+.auto-fit-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 1.5rem;
+}
