@@ -91,7 +91,7 @@ Format your response naturally, and if you have matches, include them as: "match
     console.log('Sending request to OpenAI:', { query, contactCount: contacts.length })
 
     const completion = await openai.chat.completions.create({
-      model: 'gpt-4',
+      model: 'gpt-3.5-turbo',
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: userPrompt },

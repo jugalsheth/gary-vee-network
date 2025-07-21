@@ -22,6 +22,7 @@ import { SuccessButton } from './SuccessButton'
 import { VoiceRecorder } from './VoiceRecorder'
 import { showSuccessToast, showErrorToast } from '@/lib/toast'
 import type { ExtractedData } from '@/lib/ocr'
+import { generateUniqueId } from '@/lib/utils'
 
 const ContactSchema = z.object({
   name: z.string().min(1, 'Name is required'),
@@ -112,7 +113,7 @@ export function AddContactModal({ open, onOpenChange, onAdd }: AddContactModalPr
       await new Promise(resolve => setTimeout(resolve, 600))
       
       const newContact: Contact = {
-        id: Date.now().toString(),
+        id: generateUniqueId(),
         name: values.name,
         email: values.email || undefined,
         phone: values.phone || undefined,

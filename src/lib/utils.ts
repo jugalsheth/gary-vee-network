@@ -5,20 +5,25 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-// Utility function to safely handle dates that might be strings from localStorage
-export function safeDateConversion(dateValue: Date | string | undefined): Date {
-  if (!dateValue) {
+// Generate a unique ID that combines timestamp with random numbers
+export function generateUniqueId(): string {
+  const timestamp = Date.now()
+  const random = Math.random().toString(36).substring(2, 15)
+  return `${timestamp}-${random}`
+}
+
+// Safe date conversion utility
+export function safeDateConversion(date: Date | string | undefined): Date {
+  if (!date) {
     return new Date()
   }
-  
-  if (typeof dateValue === 'string') {
-    return new Date(dateValue)
+  if (date instanceof Date) {
+    return date
   }
-  
-  if (dateValue instanceof Date) {
-    return dateValue
+  if (typeof date === 'string') {
+    const parsed = new Date(date)
+    return isNaN(parsed.getTime()) ? new Date() : parsed
   }
-  
   return new Date()
 }
 

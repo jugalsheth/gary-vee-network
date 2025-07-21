@@ -246,7 +246,7 @@ export default function Home() {
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
         {/* Header */}
         <header className="bg-white dark:bg-gray-900 shadow-sm border-b border-gray-200 dark:border-gray-700 transition-colors duration-300">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="max-w-[95%] mx-auto px-2 sm:px-4 lg:px-6">
             <div className="flex items-center justify-between h-16">
               <div className="flex items-center gap-4">
                 <div>
@@ -353,7 +353,7 @@ export default function Home() {
 
       {/* Analytics Bar */}
       <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 transition-colors duration-300">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        <div className="max-w-[95%] mx-auto px-2 sm:px-4 lg:px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               {/* Desktop Analytics */}
@@ -376,7 +376,7 @@ export default function Home() {
       </div>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="max-w-[95%] mx-auto px-2 sm:px-4 lg:px-6 py-6">
         <div className="space-y-6">
           {/* Search and Filters */}
           <AdvancedSearch
@@ -392,7 +392,7 @@ export default function Home() {
               {loading ? (
                 <ContactGridSkeleton />
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6">
                   {filteredContacts.map(contact => (
                     <ContactCard
                       key={contact.id}

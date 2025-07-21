@@ -1,8 +1,38 @@
 // LocalStorage utilities for Contact CRUD operations
 import type { Contact } from './types'
-import { safeDateConversion } from './utils'
+import { safeDateConversion, generateUniqueId } from './utils'
 
 const STORAGE_KEY = 'contacts'
+
+// Clean up contacts to ensure unique IDs
+function cleanContacts(contacts: Contact[]): Contact[] {
+  const seenIds = new Set<string>()
+  const cleanedContacts: Contact[] = []
+  
+  for (const contact of contacts) {
+    let id = contact.id
+    
+    // If ID is already seen, generate a new unique one
+    if (seenIds.has(id)) {
+      id = generateUniqueId()
+    }
+    
+    seenIds.add(id)
+    
+    cleanedContacts.push({
+      ...contact,
+      id,
+      connections: contact.connections || [],
+      interests: contact.interests || [],
+      notes: contact.notes || '',
+      socialHandles: contact.socialHandles || {},
+      createdAt: safeDateConversion(contact.createdAt),
+      updatedAt: safeDateConversion(contact.updatedAt)
+    })
+  }
+  
+  return cleanedContacts
+}
 
 export function getContacts(): Contact[] {
   try {
@@ -11,16 +41,8 @@ export function getContacts(): Contact[] {
     
     const contacts = JSON.parse(data) as Contact[]
     
-    // Convert string dates back to Date objects for consistency and ensure new fields exist
-    return contacts.map(contact => ({
-      ...contact,
-      connections: contact.connections || [],
-      interests: contact.interests || [],
-      notes: contact.notes || '',
-      socialHandles: contact.socialHandles || {},
-      createdAt: safeDateConversion(contact.createdAt),
-      updatedAt: safeDateConversion(contact.updatedAt)
-    }))
+    // Clean up contacts to ensure unique IDs and proper data structure
+    return cleanContacts(contacts)
   } catch (error) {
     console.error('Failed to load contacts from localStorage', error)
     return []

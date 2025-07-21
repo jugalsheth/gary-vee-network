@@ -1,4 +1,5 @@
 import type { Contact } from './types'
+import { generateUniqueId } from './utils'
 
 export const sampleContacts: Contact[] = [
   {
@@ -130,6 +131,7 @@ export const sampleContacts: Contact[] = [
 export function initializeSampleData(): Contact[] {
   return sampleContacts.map(contact => ({
     ...contact,
+    id: generateUniqueId(), // Ensure unique IDs for each initialization
     createdAt: new Date(),
     updatedAt: new Date(),
   }))
