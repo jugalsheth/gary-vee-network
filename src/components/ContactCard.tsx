@@ -14,11 +14,8 @@ export interface ContactCardProps {
 export function ContactCard({ contact, onEdit, onDelete }: ContactCardProps) {
   if (!contact || !contact.name || !contact.id) return null;
   return (
-    <div
-      className="group relative bg-white dark:bg-gray-800 rounded-xl shadow-sm hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 hover:scale-[1.02] border border-gray-200 dark:border-gray-700 overflow-hidden animate-fadeInUp"
-      data-contact-id={contact.id}
-    >
-      {/* Enhanced tier indicator with pulse and shimmer */}
+    <div className="group relative bg-white dark:bg-gray-800 rounded-xl shadow-sm hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 hover:scale-[1.02] border border-gray-200 dark:border-gray-700 overflow-hidden" data-contact-id={contact.id}>
+      {/* Enhanced tier indicator with pulse animation and shimmer */}
       <div className={`relative h-1.5 w-full bg-gradient-to-r transition-all duration-500 group-hover:h-3 ${
         contact.tier === 'tier1' ? 'from-pink-400 via-pink-500 to-pink-600 group-hover:shadow-lg group-hover:shadow-pink-500/50' :
         contact.tier === 'tier2' ? 'from-yellow-400 via-yellow-500 to-yellow-600 group-hover:shadow-lg group-hover:shadow-yellow-500/50' :
@@ -49,7 +46,6 @@ export function ContactCard({ contact, onEdit, onDelete }: ContactCardProps) {
                 'bg-green-400'
               }`} />
             </div>
-            {/* Enhanced name with gradient text on hover */}
             <div className="flex-1 min-w-0">
               <h3 className={`font-semibold text-gray-900 dark:text-white text-lg leading-tight truncate transition-all duration-300 group-hover:bg-gradient-to-r group-hover:bg-clip-text group-hover:text-transparent ${
                 contact.tier === 'tier1' ? 'group-hover:from-pink-500 group-hover:to-pink-600' :

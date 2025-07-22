@@ -78,13 +78,39 @@ function GlobalContactProvider({ children }: { children: React.ReactNode }) {
   return <GlobalContactContext.Provider value={value}>{children}</GlobalContactContext.Provider>;
 }
 
+function ContactGrid({ contacts, onEdit, onDelete }: { contacts: Contact[], onEdit: (c: Contact) => void, onDelete: (id: string) => void }) {
+  if (!contacts || contacts.length === 0) {
+    return (
+      <div className="text-center py-12">
+        <p className="text-gray-500">No contacts found</p>
+      </div>
+    );
+  }
+  return (
+    <div className="auto-fit-grid">
+      {contacts.map((contact) => (
+        <ContactCard
+          key={contact.id}
+          contact={contact}
+          onEdit={onEdit}
+          onDelete={() => onDelete(contact.id)}
+        />
+      ))}
+    </div>
+  );
+}
+
 // Counting animation component
-const CountingNumber: React.FC<{ end: number; duration?: number }> = ({ end, duration = 1000 }) => {
+interface CountingNumberProps {
+  end: number;
+  duration?: number;
+}
+const CountingNumber: React.FC<CountingNumberProps> = ({ end, duration = 1000 }) => {
   const [count, setCount] = useState(0);
   useEffect(() => {
     let startTime: number | undefined;
     const animate = (currentTime: number) => {
-      if (startTime === undefined) startTime = currentTime;
+      if (!startTime) startTime = currentTime;
       const progress = Math.min((currentTime - startTime) / duration, 1);
       setCount(Math.floor(progress * end));
       if (progress < 1) requestAnimationFrame(animate);
@@ -94,7 +120,7 @@ const CountingNumber: React.FC<{ end: number; duration?: number }> = ({ end, dur
   return <span>{count.toLocaleString()}</span>;
 };
 
-// AnalyticsCard with premium effects
+// Enhanced analytics card with counter and progress bar
 interface AnalyticsCardProps {
   icon: React.ElementType;
   count: number;
@@ -133,39 +159,14 @@ const AnalyticsCard: React.FC<AnalyticsCardProps> = ({ icon: Icon, count, label,
   </div>
 );
 
-function ContactGrid({ contacts, onEdit, onDelete }: { contacts: Contact[], onEdit: (c: Contact) => void, onDelete: (c: Contact) => void }) {
-  if (!contacts || contacts.length === 0) {
-    return (
-      <div className="text-center py-12">
-        <p className="text-gray-500">No contacts found</p>
-      </div>
-    );
-  }
-  return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-8">
-      {contacts.map((contact, index) => (
-        <div
-          key={contact.id}
-          className="animate-slideInUp opacity-0"
-          style={{ animationDelay: `${index * 100}ms`, animationFillMode: 'forwards' }}
-        >
-          <ContactCard
-            contact={contact}
-            onEdit={onEdit}
-            onDelete={onDelete}
-          />
-        </div>
-      ))}
-    </div>
-  );
+// Replace PremiumHeader with animated analytics cards
+interface PremiumHeaderProps {
+  contacts: Contact[];
 }
-
-// Add PremiumHeader component with explicit types
-const PremiumHeader = ({ contacts }: { contacts: Contact[] }) => {
+const PremiumHeader: React.FC<PremiumHeaderProps> = ({ contacts }) => {
   const tier1Count = contacts.filter((c: Contact) => c.tier === 'tier1').length;
   const tier2Count = contacts.filter((c: Contact) => c.tier === 'tier2').length;
   const tier3Count = contacts.filter((c: Contact) => c.tier === 'tier3').length;
-
   return (
     <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-900 border-b border-gray-200 dark:border-gray-700">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
@@ -694,11 +695,7 @@ export default function Home() {
                   <ContactGridSkeleton />
                 ) : (
                   <>
-                    <ContactGrid
-                      contacts={currentContacts}
-                      onEdit={handleEditContact}
-                      onDelete={(contact) => handleDeleteContact(contact.id)}
-                    />
+                    <ContactGrid contacts={currentContacts} onEdit={handleEditContact} onDelete={handleDeleteContact} />
                     <PaginationControls />
                   </>
                 )}
