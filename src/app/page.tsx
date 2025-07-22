@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import { ContactCard } from '@/components/ContactCard'
 import { ContactGridSkeleton } from '@/components/ContactCardSkeleton'
 import { AddContactModal } from '@/components/AddContactModal'
@@ -651,6 +651,13 @@ export default function Home() {
     setShowEditModal(true);
   };
 
+  const [visibleRange, setVisibleRange] = useState({ start: 0, end: 50 });
+
+  // Virtualized visible contacts for grid
+  const visibleContacts = useMemo(() => {
+    return filteredContacts.slice(visibleRange.start, visibleRange.end);
+  }, [filteredContacts, visibleRange]);
+
   return (
     <GlobalContactProvider>
       <ProtectedRoute>
@@ -801,7 +808,6 @@ export default function Home() {
         <main className="max-w-[95%] mx-auto px-2 sm:px-4 lg:px-6 py-8">
           <div className="space-y-8">
             {/* Search and Filters */}
-            {/* <AdvancedSearch ... /> */}
             <AdvancedSearch
               contacts={contacts}
               onFilterChange={handleFilterChange}
@@ -809,23 +815,29 @@ export default function Home() {
               onActiveFiltersChange={setActiveFilters}
             />
 
-            {/* Contact Display */}
+            {/* Contact Display - RESTORED */}
             {viewMode === 'grid' && (
-              <>
-                {loading ? (
-                  <ContactGridSkeleton />
-                ) : (
-                  <>
-                    <ContactGrid contacts={currentContacts} onEdit={handleEditContact} onDelete={handleDeleteContact} />
-                    <PaginationControls />
-                  </>
-                )}
-              </>
+              loading ? (
+                <div className="text-center py-12">
+                  <div className="text-gray-400">Loading contacts...</div>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-8">
+                  {visibleContacts.map((contact, index) => (
+                    <ContactCard
+                      key={contact.id}
+                      contact={contact}
+                      onEdit={handleEditContact}
+                      onDelete={() => handleDeleteContact(contact.id)}
+                    />
+                  ))}
+                </div>
+              )
             )}
 
             {viewMode === 'bulk' && (
               <BulkOperations
-                contacts={global?.filteredContacts || []}
+                contacts={filteredContacts}
                 selectedContacts={selectedContacts}
                 onSelectionChange={setSelectedContacts}
                 onDeleteContacts={handleBulkDeleteContacts}

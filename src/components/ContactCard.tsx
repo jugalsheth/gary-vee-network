@@ -3,6 +3,7 @@
 import { Edit2, Trash2, Phone, MapPin, Instagram } from "lucide-react"
 import type { Contact } from "@/lib/types"
 import * as React from "react"
+import { memo } from "react"
 
 export interface ContactCardProps {
   contact: Contact
@@ -11,7 +12,7 @@ export interface ContactCardProps {
   onManageConnections?: (contact: Contact) => void
 }
 
-export function ContactCard({ contact, onEdit, onDelete }: ContactCardProps) {
+const ContactCardComponent = ({ contact, onEdit, onDelete }: ContactCardProps) => {
   if (!contact || !contact.name || !contact.id) return null;
   return (
     <div className="group relative bg-white dark:bg-gray-800 rounded-xl shadow-sm hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 hover:scale-[1.02] border border-gray-200 dark:border-gray-700 overflow-hidden" data-contact-id={contact.id}>
@@ -128,6 +129,11 @@ export function ContactCard({ contact, onEdit, onDelete }: ContactCardProps) {
     </div>
   );
 }
+
+const ContactCard = memo(ContactCardComponent);
+ContactCard.displayName = 'ContactCard';
+
+export { ContactCard };
 
 // Example usage for testing/demo
 const sampleContact: Contact = {
