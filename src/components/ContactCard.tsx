@@ -1,11 +1,8 @@
 'use client'
 
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { ContactAvatar } from "./ContactAvatar"
-import { Mail, Phone, Instagram, Edit2, Trash2, Loader2, Users, MapPin } from "lucide-react"
-import * as React from "react"
+import { Edit2, Trash2, Phone, MapPin, Instagram } from "lucide-react"
 import type { Contact } from "@/lib/types"
+import * as React from "react"
 
 export interface ContactCardProps {
   contact: Contact
@@ -14,159 +11,108 @@ export interface ContactCardProps {
   onManageConnections?: (contact: Contact) => void
 }
 
-export function ContactCard({ contact, onEdit, onDelete, onManageConnections }: ContactCardProps) {
-  // Defensive check: skip rendering if essential data is missing
+export function ContactCard({ contact, onEdit, onDelete }: ContactCardProps) {
   if (!contact || !contact.name || !contact.id) return null;
-  const [isDeleting, setIsDeleting] = React.useState(false);
-  const [showActions, setShowActions] = React.useState(false);
-
-  const handleEdit = () => {
-    if (onEdit) onEdit(contact);
-  };
-  const handleDelete = async () => {
-    if (!onDelete || isDeleting) return;
-    setIsDeleting(true);
-    try {
-      await onDelete(contact);
-    } catch (error) {
-      setIsDeleting(false);
-    }
-  };
-
-  // Quick action handlers
-  const handleCall = () => contact.phone && window.open(`tel:${contact.phone}`);
-  const handleEmail = () => contact.email && window.open(`mailto:${contact.email}`);
-  const handleInstagram = () => contact.instagram && window.open(`https://instagram.com/${contact.instagram}`);
-
   return (
-    <div
-      className="premium-card card-entrance group relative overflow-hidden transition-modern"
-      tabIndex={0}
-      aria-label={`Contact card for ${contact.name}`}
-      onMouseEnter={() => setShowActions(true)}
-      onMouseLeave={() => setShowActions(false)}
-      data-contact-id={contact.id}
-    >
-      {/* Glassmorphism overlay for extra depth */}
-      <div className="absolute inset-0 pointer-events-none glass-premium z-0" aria-hidden="true" />
-      {/* Tier Badge (top right, never overlaps name) */}
-      <div className="absolute top-4 right-4 z-10">
-        <Badge variant={`tier${contact.tier.slice(-1)}` as any} className="shadow-premium px-3 py-1 text-xs font-semibold animate-fade-in">
-          {contact.tier.replace('tier', 'Tier ')}
-        </Badge>
-      </div>
-      {/* Quick Actions (hover) */}
-      <div className={`absolute left-4 top-4 z-10 flex flex-col gap-2 transition-all duration-300 ${showActions ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-4 pointer-events-none'}`}
-        aria-label="Quick actions"
-      >
-        {contact.phone && (
-          <Button variant="ghost" size="icon" onClick={handleCall} aria-label="Call" title="Call" className="hover:bg-pink-100 dark:hover:bg-pink-900/30 shadow-premium">
-            <Phone className="w-4 h-4" />
-          </Button>
-        )}
-        {contact.email && (
-          <Button variant="ghost" size="icon" onClick={handleEmail} aria-label="Email" title="Email" className="hover:bg-blue-100 dark:hover:bg-blue-900/30 shadow-premium">
-            <Mail className="w-4 h-4" />
-          </Button>
-        )}
-        {contact.instagram && (
-          <Button variant="ghost" size="icon" onClick={handleInstagram} aria-label="Instagram" title="Instagram" className="hover:bg-gradient-to-br from-pink-200 to-yellow-100 dark:from-pink-900/30 dark:to-yellow-900/30 shadow-premium">
-            <Instagram className="w-4 h-4" />
-          </Button>
-        )}
-      </div>
-      {/* Main Content */}
-      <div className="relative z-10 flex flex-col gap-4">
-        {/* Avatar, Name, and Relationship */}
-        <div className="flex items-center gap-4 mb-2">
-          <ContactAvatar name={contact.name} tier={contact.tier} size="lg" className="pulse-glow" />
-          <div className="flex-1 min-w-0">
-            <h3 className="font-premium-title gradient-text truncate max-w-[160px]" title={contact.name}>
-              {contact.name}
-            </h3>
-            {contact.relationshipToGary && (
-              <p className="font-premium-meta truncate max-w-[160px]" title={contact.relationshipToGary}>
-                {contact.relationshipToGary}
-              </p>
-            )}
+    <div className="group relative bg-white dark:bg-gray-800 rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border border-gray-200 dark:border-gray-700 overflow-hidden" data-contact-id={contact.id}>
+      {/* Enhanced tier indicator bar */}
+      <div className={`h-1.5 w-full bg-gradient-to-r transition-all duration-300 group-hover:h-2 ${
+        contact.tier === 'tier1' ? 'from-pink-400 via-pink-500 to-pink-600' :
+        contact.tier === 'tier2' ? 'from-yellow-400 via-yellow-500 to-yellow-600' :
+        'from-green-400 via-green-500 to-green-600'
+      }`} />
+      {/* Subtle glassmorphism overlay */}
+      <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+      <div className="relative p-6">
+        {/* Enhanced header section */}
+        <div className="flex items-start justify-between mb-4">
+          <div className="flex items-center space-x-3">
+            {/* Premium avatar with glow effect */}
+            <div className={`relative w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-lg transition-all duration-300 group-hover:scale-105 group-hover:shadow-xl ${
+              contact.tier === 'tier1' ? 'bg-gradient-to-br from-pink-500 to-pink-600 group-hover:shadow-pink-500/30' :
+              contact.tier === 'tier2' ? 'bg-gradient-to-br from-yellow-500 to-yellow-600 group-hover:shadow-yellow-500/30' :
+              'bg-gradient-to-br from-green-500 to-green-600 group-hover:shadow-green-500/30'
+            }`}>
+              {contact.name?.split(' ').map(n => n[0]).join('').toUpperCase() || 'N/A'}
+              {/* Animated ring on hover */}
+              <div className={`absolute inset-0 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 ring-2 ${
+                contact.tier === 'tier1' ? 'ring-pink-400/50' :
+                contact.tier === 'tier2' ? 'ring-yellow-400/50' :
+                'ring-green-400/50'
+              }`} />
+            </div>
+            <div className="flex-1 min-w-0">
+              <h3 className="font-semibold text-gray-900 dark:text-white text-lg leading-tight truncate">
+                {contact.name || 'Unknown'}
+              </h3>
+              {contact.email && (
+                <p className="text-sm text-gray-500 dark:text-gray-400 truncate mt-0.5">
+                  {contact.email}
+                </p>
+              )}
+            </div>
           </div>
+          {/* Enhanced tier badge */}
+          <span className={`px-3 py-1.5 rounded-full text-xs font-bold shadow-md transition-all duration-300 group-hover:scale-105 group-hover:shadow-lg ${
+            contact.tier === 'tier1' ? 'bg-gradient-to-r from-pink-500 to-pink-600 text-white group-hover:shadow-pink-500/25' :
+            contact.tier === 'tier2' ? 'bg-gradient-to-r from-yellow-500 to-yellow-600 text-white group-hover:shadow-yellow-500/25' :
+            'bg-gradient-to-r from-green-500 to-green-600 text-white group-hover:shadow-green-500/25'
+          }`}>
+            {contact.tier === 'tier1' ? 'TIER 1' : contact.tier === 'tier2' ? 'TIER 2' : 'TIER 3'}
+          </span>
         </div>
-        {/* Contact Details */}
-        <div className="flex flex-col gap-2 mb-2">
-          {contact.email && (
-            <div className="flex items-center text-sm text-gray-600 dark:text-gray-300">
-              <Mail className="h-4 w-4 mr-2 flex-shrink-0 opacity-70" />
-              <span className="truncate max-w-[140px]" title={contact.email}>{contact.email}</span>
-            </div>
-          )}
+        {/* Enhanced contact details with icons */}
+        <div className="space-y-2 mb-4">
           {contact.phone && (
-            <div className="flex items-center text-sm text-gray-600 dark:text-gray-300">
-              <Phone className="h-4 w-4 mr-2 flex-shrink-0 opacity-70" />
-              <span className="truncate max-w-[140px]" title={contact.phone}>{contact.phone}</span>
+            <div className="flex items-center text-sm text-gray-600 dark:text-gray-300 transition-colors group-hover:text-gray-700">
+              <Phone className="w-4 h-4 mr-3 flex-shrink-0 opacity-70" />
+              <span className="truncate">{contact.phone}</span>
             </div>
           )}
-          {contact.location && (
-            <div className="flex items-center text-sm text-gray-600 dark:text-gray-300">
-              <MapPin className="h-4 w-4 mr-2 flex-shrink-0 opacity-70" />
-              <span className="truncate max-w-[140px]" title={contact.location}>{contact.location}</span>
+          {(contact.location || contact.city) && (
+            <div className="flex items-center text-sm text-gray-600 dark:text-gray-300 transition-colors group-hover:text-gray-700">
+              <MapPin className="w-4 h-4 mr-3 flex-shrink-0 opacity-70" />
+              <span className="truncate">{contact.location || contact.city}</span>
             </div>
           )}
           {contact.instagram && (
-            <div className="flex items-center text-sm text-gray-600 dark:text-gray-300">
-              <Instagram className="h-4 w-4 mr-2 flex-shrink-0 opacity-70" />
-              <a
-                href={`https://instagram.com/${contact.instagram}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="truncate max-w-[120px] hover:underline"
-                title={`@${contact.instagram}`}
-                aria-label={`Instagram profile of ${contact.name}`}
-              >
-                @{contact.instagram}
-              </a>
+            <div className="flex items-center text-sm text-gray-600 dark:text-gray-300 transition-colors group-hover:text-gray-700">
+              <Instagram className="w-4 h-4 mr-3 flex-shrink-0 opacity-70" />
+              <span className="truncate">{contact.instagram}</span>
             </div>
           )}
         </div>
-        {/* Notes Preview */}
+        {/* Enhanced notes section */}
         {contact.notes && (
-          <div className="mb-2">
-            <p className="text-sm text-gray-600 dark:text-gray-300 line-clamp-2 font-premium-meta truncate max-w-[220px]" title={contact.notes}>
+          <div className="mb-4">
+            <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2 leading-relaxed">
               {contact.notes}
             </p>
           </div>
         )}
-        {/* Action Buttons & Connections */}
-        <div className="flex items-center justify-between pt-4 border-t border-gray-200 dark:border-gray-700">
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleEdit}
-              className="flex items-center gap-1 transition-modern hover:scale-105"
-              aria-label="Edit contact"
+        {/* Premium action buttons - KEEP EXISTING FUNCTIONALITY */}
+        <div className="flex items-center justify-between pt-4 border-t border-gray-100 dark:border-gray-700">
+          <div className="flex space-x-2">
+            <button
+              onClick={() => onEdit && onEdit(contact)}
+              className={`p-2.5 rounded-lg transition-all duration-300 opacity-0 group-hover:opacity-100 transform translate-y-1 group-hover:translate-y-0 border border-transparent hover:border-current ${
+                contact.tier === 'tier1' ? 'hover:bg-pink-50 hover:text-pink-600 dark:hover:bg-pink-900/20' :
+                contact.tier === 'tier2' ? 'hover:bg-yellow-50 hover:text-yellow-600 dark:hover:bg-yellow-900/20' :
+                'hover:bg-green-50 hover:text-green-600 dark:hover:bg-green-900/20'
+              }`}
             >
-              <Edit2 className="h-4 w-4" />
-              <span>Edit</span>
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleDelete}
-              disabled={isDeleting}
-              className="flex items-center gap-1 text-red-600 hover:text-red-700 transition-modern hover:scale-105"
-              aria-label="Delete contact"
+              <Edit2 className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => onDelete && onDelete(contact)}
+              className="p-2.5 rounded-lg transition-all duration-300 opacity-0 group-hover:opacity-100 transform translate-y-1 group-hover:translate-y-0 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-900/20 border border-transparent hover:border-current"
             >
-              {isDeleting ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <Trash2 className="h-4 w-4" />
-              )}
-              <span>{isDeleting ? 'Deleting...' : 'Delete'}</span>
-            </Button>
+              <Trash2 className="w-4 h-4" />
+            </button>
           </div>
-          <div className="flex items-center gap-2 text-xs text-gray-400">
-            <Users className="h-4 w-4 mr-1" />
-            <span>{contact.connections?.length || 0}</span>
+          {/* Enhanced date display */}
+          <div className="text-xs text-gray-400 transition-all duration-300 group-hover:text-gray-500 font-medium">
+            {contact.createdAt ? new Date(contact.createdAt).toLocaleDateString() : 'Unknown'}
           </div>
         </div>
       </div>

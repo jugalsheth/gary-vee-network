@@ -20,7 +20,7 @@ import { NetworkInsights } from '@/components/NetworkInsights'
 import { VoiceNotesDemo } from '@/components/VoiceNotesDemo'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Plus, Upload, Users, Grid, List, Network, BarChart3, Mic, Edit2, Trash2, Phone, MapPin, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Plus, Upload, Users, Grid, List, Network, BarChart3, Mic, Edit2, Trash2, Phone, MapPin, ChevronLeft, ChevronRight, Star, Target } from 'lucide-react'
 import { getTeamColor } from '@/lib/auth'
 import { exportContactsToCSV } from '@/lib/importExport'
 import { toast } from 'sonner';
@@ -99,6 +99,74 @@ function ContactGrid({ contacts, onEdit, onDelete }: { contacts: Contact[], onEd
     </div>
   );
 }
+
+// Add PremiumHeader component with explicit types
+const PremiumHeader = ({ contacts }: { contacts: Contact[] }) => {
+  const tier1Count = contacts.filter((c: Contact) => c.tier === 'tier1').length;
+  const tier2Count = contacts.filter((c: Contact) => c.tier === 'tier2').length;
+  const tier3Count = contacts.filter((c: Contact) => c.tier === 'tier3').length;
+
+  return (
+    <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-900 border-b border-gray-200 dark:border-gray-700">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow duration-300 border border-gray-100 dark:border-gray-700">
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg flex items-center justify-center">
+                  <Users className="w-5 h-5 text-white" />
+                </div>
+              </div>
+              <div className="ml-4">
+                <div className="text-2xl font-bold text-gray-900 dark:text-white">{contacts.length}</div>
+                <div className="text-sm text-gray-500 dark:text-gray-400">Total Contacts</div>
+              </div>
+            </div>
+          </div>
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow duration-300 border border-gray-100 dark:border-gray-700">
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <div className="w-10 h-10 bg-gradient-to-r from-pink-500 to-pink-600 rounded-lg flex items-center justify-center">
+                  <Star className="w-5 h-5 text-white" />
+                </div>
+              </div>
+              <div className="ml-4">
+                <div className="text-2xl font-bold text-gray-900 dark:text-white">{tier1Count}</div>
+                <div className="text-sm text-gray-500 dark:text-gray-400">Tier 1 Contacts</div>
+              </div>
+            </div>
+          </div>
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow duration-300 border border-gray-100 dark:border-gray-700">
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <div className="w-10 h-10 bg-gradient-to-r from-yellow-500 to-yellow-600 rounded-lg flex items-center justify-center">
+                  <Target className="w-5 h-5 text-white" />
+                </div>
+              </div>
+              <div className="ml-4">
+                <div className="text-2xl font-bold text-gray-900 dark:text-white">{tier2Count}</div>
+                <div className="text-sm text-gray-500 dark:text-gray-400">Tier 2 Contacts</div>
+              </div>
+            </div>
+          </div>
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow duration-300 border border-gray-100 dark:border-gray-700">
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <div className="w-10 h-10 bg-gradient-to-r from-green-500 to-green-600 rounded-lg flex items-center justify-center">
+                  <Network className="w-5 h-5 text-white" />
+                </div>
+              </div>
+              <div className="ml-4">
+                <div className="text-2xl font-bold text-gray-900 dark:text-white">{tier3Count}</div>
+                <div className="text-sm text-gray-500 dark:text-gray-400">Tier 3 Contacts</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 export default function Home() {
   const { user, logout } = useAuth()
@@ -572,31 +640,29 @@ export default function Home() {
                   <Plus className="w-4 h-4" />
                   Add Contact
                 </Button>
-              </div>
-            </div>
-          </div> {/* <-- Add this closing div for the header flex container */}
-          </header>
-
-          <div className="glass-card border-b border-gray-200/50 dark:border-gray-700/50 transition-colors duration-300">
-            {/* Analytics Bar */}
+              </div> {/* closes .flex.items-center.gap-2 */}
+            </div> {/* closes .flex.items-center.justify-between.h-20 */}
+          </div> {/* closes .max-w-[95%] mx-auto px-2 sm:px-4 lg:px-6 */}
+        </header>
+          {/* Premium Analytics Header */}
+          <PremiumHeader contacts={contacts} />
+          {/* Remove or comment out the old analytics bar and HeaderAnalytics usage */}
+          {/* <div className="glass-card border-b border-gray-200/50 dark:border-gray-700/50 transition-colors duration-300">
             <div className="max-w-[95%] mx-auto px-2 sm:px-4 lg:px-6 py-6">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-6">
-                  {/* Desktop Analytics */}
                   <div className="hidden md:block">
                     {global?.globalAnalytics && (
                       <HeaderAnalytics globalAnalytics={global.globalAnalytics} />
                     )}
                   </div>
-                  
-                  {/* Quick Actions */}
                   <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
                     <span className="hidden sm:inline">Last updated: {new Date().toLocaleTimeString()}</span>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
+          </div> */}
 
         {/* Main Content */}
         <main className="max-w-[95%] mx-auto px-2 sm:px-4 lg:px-6 py-8">
