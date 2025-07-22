@@ -9,7 +9,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { Badge } from '@/components/ui/badge'
 import type { Contact, Tier } from '@/lib/types'
 import { Search, Filter, X, ChevronDown, ChevronUp } from 'lucide-react'
-import { useMemo, useState, useCallback } from 'react'
+import { useMemo, useState, useCallback, useEffect } from 'react'
 
 interface AdvancedSearchProps {
   contacts: Contact[]
@@ -45,6 +45,37 @@ const useDebounce = (value: string, delay: number) => {
 
 export function AdvancedSearch({ contacts, onFilterChange, activeFilters, onActiveFiltersChange }: AdvancedSearchProps) {
   const [isOpen, setIsOpen] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  // Fetch filtered contacts from backend
+  const fetchFilteredContacts = useCallback(async (filters: FilterState) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const params = new URLSearchParams();
+      if (filters.tier && filters.tier !== 'all') params.append('tier', filters.tier);
+      if (filters.location && filters.location !== 'all') params.append('location', filters.location);
+      // Add more filters as needed (team, etc.)
+      params.append('page', '1');
+      params.append('limit', '30');
+      const response = await fetch(`/api/contacts?${params.toString()}`);
+      if (!response.ok) throw new Error('Failed to fetch filtered contacts');
+      const data = await response.json();
+      onFilterChange(data.contacts || []);
+    } catch (err) {
+      setError('Failed to fetch filtered contacts');
+      onFilterChange([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [onFilterChange]);
+
+  // Fetch when filters change
+  useEffect(() => {
+    fetchFilteredContacts(activeFilters);
+  }, [activeFilters, fetchFilteredContacts]);
+
   const debouncedSearchText = useDebounce(activeFilters.searchText, 300)
 
   // Get unique locations and interests for filter options

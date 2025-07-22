@@ -17,6 +17,7 @@ import {
 } from 'lucide-react'
 import type { Contact } from '@/lib/types'
 import { generateNetworkInsights, getNetworkStatistics } from '@/lib/networkAnalysis'
+import { useEffect, useState, useMemo } from 'react';
 
 interface NetworkInsightsProps {
   contacts: Contact[]
@@ -31,17 +32,64 @@ export function NetworkInsights({
 }: NetworkInsightsProps) {
   const [insights, setInsights] = React.useState<any>(null)
   const [stats, setStats] = React.useState<any>(null)
+  const [analytics, setAnalytics] = useState<{ totalContacts: number } | null>(null);
+  const [analyticsLoading, setAnalyticsLoading] = useState(true);
+  const [analyticsError, setAnalyticsError] = useState<string | null>(null);
+  const [networkStats, setNetworkStats] = useState<any>(null);
+  const [networkStatsLoading, setNetworkStatsLoading] = useState(true);
+  const [networkStatsError, setNetworkStatsError] = useState<string | null>(null);
 
-  React.useEffect(() => {
+  // Memoize in-memory analytics for large datasets
+  const memoizedInsights = useMemo(() => {
     if (contacts.length > 0) {
-      const networkInsights = generateNetworkInsights(contacts)
-      const networkStats = getNetworkStatistics(contacts)
-      setInsights(networkInsights)
-      setStats(networkStats)
+      return generateNetworkInsights(contacts);
     }
-  }, [contacts])
+    return null;
+  }, [contacts]);
 
-  if (!insights || !stats) {
+  const memoizedStats = useMemo(() => {
+    if (contacts.length > 0) {
+      return getNetworkStatistics(contacts);
+    }
+    return null;
+  }, [contacts]);
+
+  useEffect(() => {
+    setInsights(memoizedInsights);
+    setStats(memoizedStats);
+  }, [memoizedInsights, memoizedStats]);
+
+  useEffect(() => {
+    setAnalyticsLoading(true);
+    setAnalyticsError(null);
+    fetch('/api/contacts/analytics')
+      .then(res => res.json())
+      .then(data => {
+        setAnalytics(data);
+        setAnalyticsLoading(false);
+      })
+      .catch(() => {
+        setAnalyticsError('Failed to load analytics');
+        setAnalyticsLoading(false);
+      });
+  }, []);
+
+  useEffect(() => {
+    setNetworkStatsLoading(true);
+    setNetworkStatsError(null);
+    fetch('/api/contacts/network-stats')
+      .then(res => res.json())
+      .then(data => {
+        setNetworkStats(data);
+        setNetworkStatsLoading(false);
+      })
+      .catch(() => {
+        setNetworkStatsError('Failed to load network stats');
+        setNetworkStatsLoading(false);
+      });
+  }, []);
+
+  if (analyticsLoading || networkStatsLoading) {
     return (
       <Card className="w-full">
         <CardContent className="flex items-center justify-center h-32">
@@ -53,9 +101,18 @@ export function NetworkInsights({
       </Card>
     )
   }
+  if (analyticsError || !analytics || networkStatsError || !networkStats) {
+    return (
+      <Card className="w-full">
+        <CardContent className="flex items-center justify-center h-32">
+          <div className="text-center text-red-500">{analyticsError || networkStatsError || 'No analytics data'}</div>
+        </CardContent>
+      </Card>
+    )
+  }
 
-  const networkDensityPercent = Math.round(insights.networkDensity * 100)
-  const averageDegreeRounded = Math.round(insights.averageDegree * 10) / 10
+  const networkDensityPercent = Math.round((networkStats.networkDensity || 0) * 100)
+  const averageDegreeRounded = Math.round((networkStats.averageConnections || 0) * 10) / 10
 
   return (
     <div className="space-y-6">
@@ -70,11 +127,11 @@ export function NetworkInsights({
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="text-center">
-              <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">{insights.totalContacts}</div>
+              <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">{networkStats.totalContacts}</div>
               <div className="text-sm text-gray-600 dark:text-gray-400">Total Contacts</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-green-600 dark:text-green-400">{insights.totalConnections}</div>
+              <div className="text-2xl font-bold text-green-600 dark:text-green-400">{networkStats.totalConnections}</div>
               <div className="text-sm text-gray-600 dark:text-gray-400">Total Connections</div>
             </div>
             <div className="text-center">
@@ -95,18 +152,18 @@ export function NetworkInsights({
           <CardTitle className="flex items-center gap-2">
             <Star className="w-5 h-5" />
             Network Hubs
-            <Badge variant="outline">{insights.hubs.length}</Badge>
+            <Badge variant="outline">{networkStats.hubs.length}</Badge>
           </CardTitle>
         </CardHeader>
         <CardContent>
-          {insights.hubs.length === 0 ? (
+          {networkStats.hubs.length === 0 ? (
             <div className="text-center py-4 text-gray-500 dark:text-gray-400">
               <Users className="w-8 h-8 mx-auto mb-2" />
               <p>No network hubs identified yet</p>
             </div>
           ) : (
             <div className="space-y-3">
-              {insights.hubs.map((hub: Contact) => (
+              {networkStats.hubs.map((hub: any) => (
                 <div key={hub.id} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center">
@@ -142,11 +199,11 @@ export function NetworkInsights({
           <CardTitle className="flex items-center gap-2">
             <AlertTriangle className="w-5 h-5" />
             Isolated Contacts
-            <Badge variant="outline">{insights.isolatedContacts.length}</Badge>
+            <Badge variant="outline">{networkStats.isolatedContacts.length}</Badge>
           </CardTitle>
         </CardHeader>
         <CardContent>
-          {insights.isolatedContacts.length === 0 ? (
+          {networkStats.isolatedContacts.length === 0 ? (
             <div className="text-center py-4 text-green-600 dark:text-green-400">
               <Network className="w-8 h-8 mx-auto mb-2" />
               <p>Great! All contacts are connected</p>
@@ -157,7 +214,7 @@ export function NetworkInsights({
                 These contacts have no connections. Consider connecting them to strengthen your network.
               </p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                {insights.isolatedContacts.slice(0, 6).map((contact: Contact) => (
+                {networkStats.isolatedContacts.slice(0, 6).map((contact: any) => (
                   <div key={contact.id} className="flex items-center justify-between p-2 bg-yellow-50 dark:bg-yellow-900/20 rounded">
                     <div className="flex items-center gap-2">
                       <div className="w-6 h-6 rounded-full bg-yellow-100 dark:bg-yellow-900 flex items-center justify-center">
@@ -176,9 +233,9 @@ export function NetworkInsights({
                   </div>
                 ))}
               </div>
-              {insights.isolatedContacts.length > 6 && (
+              {networkStats.isolatedContacts.length > 6 && (
                 <p className="text-sm text-gray-500 dark:text-gray-400 text-center mt-2">
-                  +{insights.isolatedContacts.length - 6} more isolated contacts
+                  +{networkStats.isolatedContacts.length - 6} more isolated contacts
                 </p>
               )}
             </div>
@@ -186,17 +243,18 @@ export function NetworkInsights({
         </CardContent>
       </Card>
 
+      {/* Suggested Connections and Connection Strength Distribution remain in-memory for now */}
       {/* Suggested Connections */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Lightbulb className="w-5 h-5" />
             Suggested Connections
-            <Badge variant="outline">{insights.suggestedConnections.length}</Badge>
+            <Badge variant="outline">{insights?.suggestedConnections?.length || 0}</Badge>
           </CardTitle>
         </CardHeader>
         <CardContent>
-          {insights.suggestedConnections.length === 0 ? (
+          {insights?.suggestedConnections?.length === 0 ? (
             <div className="text-center py-4 text-gray-500 dark:text-gray-400">
               <Target className="w-8 h-8 mx-auto mb-2" />
               <p>No connection suggestions at this time</p>
@@ -243,9 +301,9 @@ export function NetworkInsights({
                 <span className="text-sm text-gray-900 dark:text-gray-100">Strong</span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-sm font-medium text-gray-900 dark:text-gray-100">{stats.connectionStrengthDistribution.strong}</span>
+                <span className="text-sm font-medium text-gray-900 dark:text-gray-100">{stats?.connectionStrengthDistribution?.strong || 0}</span>
                 <Progress 
-                  value={(stats.connectionStrengthDistribution.strong / stats.totalConnections) * 100} 
+                  value={stats?.totalConnections ? (stats.connectionStrengthDistribution.strong / stats.totalConnections) * 100 : 0} 
                   className="w-20"
                 />
               </div>
@@ -257,9 +315,9 @@ export function NetworkInsights({
                 <span className="text-sm text-gray-900 dark:text-gray-100">Medium</span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-sm font-medium text-gray-900 dark:text-gray-100">{stats.connectionStrengthDistribution.medium}</span>
+                <span className="text-sm font-medium text-gray-900 dark:text-gray-100">{stats?.connectionStrengthDistribution?.medium || 0}</span>
                 <Progress 
-                  value={(stats.connectionStrengthDistribution.medium / stats.totalConnections) * 100} 
+                  value={stats?.totalConnections ? (stats.connectionStrengthDistribution.medium / stats.totalConnections) * 100 : 0} 
                   className="w-20"
                 />
               </div>
@@ -271,9 +329,9 @@ export function NetworkInsights({
                 <span className="text-sm text-gray-900 dark:text-gray-100">Weak</span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-sm font-medium text-gray-900 dark:text-gray-100">{stats.connectionStrengthDistribution.weak}</span>
+                <span className="text-sm font-medium text-gray-900 dark:text-gray-100">{stats?.connectionStrengthDistribution?.weak || 0}</span>
                 <Progress 
-                  value={(stats.connectionStrengthDistribution.weak / stats.totalConnections) * 100} 
+                  value={stats?.totalConnections ? (stats.connectionStrengthDistribution.weak / stats.totalConnections) * 100 : 0} 
                   className="w-20"
                 />
               </div>

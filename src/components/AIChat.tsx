@@ -4,7 +4,7 @@ import * as React from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { ContactCard } from '@/components/ContactCard'
+import ContactCard from '@/components/ContactCard';
 import { AIChatLoading } from '@/components/AIChatLoading'
 import { showSuccessToast, showErrorToast } from '@/lib/toast'
 import type { Contact } from '@/lib/types'

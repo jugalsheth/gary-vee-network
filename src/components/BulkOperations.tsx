@@ -1,6 +1,6 @@
 'use client'
 
-import * as React from 'react'
+import React, { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Badge } from '@/components/ui/badge'
@@ -36,6 +36,24 @@ export function BulkOperations({
   const [showDeleteDialog, setShowDeleteDialog] = React.useState(false)
   const [showTierDialog, setShowTierDialog] = React.useState(false)
   const [newTier, setNewTier] = React.useState<Tier>('tier3')
+  const [analytics, setAnalytics] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    setLoading(true);
+    setError(null);
+    fetch('/api/contacts/analytics')
+      .then(res => res.json())
+      .then(data => {
+        setAnalytics(data);
+        setLoading(false);
+      })
+      .catch(() => {
+        setError('Failed to load analytics');
+        setLoading(false);
+      });
+  }, []);
 
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
@@ -83,6 +101,21 @@ export function BulkOperations({
 
   return (
     <div className="space-y-4">
+      {/* Analytics summary */}
+      <div className="mb-4">
+        {loading ? (
+          <div>Loading analytics...</div>
+        ) : error || !analytics ? (
+          <div>{error || 'No analytics data'}</div>
+        ) : (
+          <div className="flex gap-4">
+            <div>Total Contacts: {analytics.totalContacts}</div>
+            <div>Tier 1: {analytics.tier1}</div>
+            <div>Tier 2: {analytics.tier2}</div>
+            <div>Tier 3: {analytics.tier3}</div>
+          </div>
+        )}
+      </div>
       {/* Selection Controls */}
       <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
         <div className="flex items-center gap-4">

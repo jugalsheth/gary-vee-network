@@ -130,10 +130,19 @@ const ContactCardComponent = ({ contact, onEdit, onDelete }: ContactCardProps) =
   );
 }
 
-const ContactCard = memo(ContactCardComponent);
-ContactCard.displayName = 'ContactCard';
+const MemoizedContactCard = memo(ContactCardComponent, (prevProps, nextProps) => {
+  // Only re-render if contact ID or update time changes
+  const shouldUpdate = (
+    prevProps.contact.id !== nextProps.contact.id ||
+    prevProps.contact.updatedAt !== nextProps.contact.updatedAt
+  );
+  if (!shouldUpdate) {
+    console.log('⚡ ContactCard render skipped for:', prevProps.contact.name);
+  }
+  return !shouldUpdate;
+});
 
-export { ContactCard };
+export default MemoizedContactCard;
 
 // Example usage for testing/demo
 const sampleContact: Contact = {

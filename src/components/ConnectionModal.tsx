@@ -18,6 +18,7 @@ import {
   X
 } from 'lucide-react'
 import type { Contact, Connection, ConnectionStrength, ConnectionType } from '@/lib/types'
+import { useEffect, useState } from 'react';
 
 interface ConnectionModalProps {
   open: boolean
@@ -40,15 +41,51 @@ export function ConnectionModal({
   const [connectionStrength, setConnectionStrength] = React.useState<ConnectionStrength>('medium')
   const [connectionType, setConnectionType] = React.useState<ConnectionType>('business')
   const [connectionNotes, setConnectionNotes] = React.useState<string>('')
+  const [liveConnections, setLiveConnections] = useState<any[]>([]);
+  const [loadingConnections, setLoadingConnections] = useState(false);
+  const [connectionsError, setConnectionsError] = useState<string | null>(null);
+
+  // Fetch live connections from backend
+  useEffect(() => {
+    if (!contact?.id) return;
+    setLoadingConnections(true);
+    setConnectionsError(null);
+    fetch(`/api/contacts/${contact.id}/connections`)
+      .then(res => res.json())
+      .then(data => {
+        setLiveConnections(data.connections || []);
+        setLoadingConnections(false);
+      })
+      .catch(() => {
+        setConnectionsError('Failed to load connections');
+        setLoadingConnections(false);
+      });
+  }, [contact?.id, open]);
+
+  // Refresh connections after add/remove
+  const refreshConnections = () => {
+    if (!contact?.id) return;
+    setLoadingConnections(true);
+    setConnectionsError(null);
+    fetch(`/api/contacts/${contact.id}/connections`)
+      .then(res => res.json())
+      .then(data => {
+        setLiveConnections(data.connections || []);
+        setLoadingConnections(false);
+      })
+      .catch(() => {
+        setConnectionsError('Failed to load connections');
+        setLoadingConnections(false);
+      });
+  };
 
   const availableContacts = allContacts.filter(c => 
     c.id !== contact?.id && 
-    !(contact?.connections || []).some(conn => conn.contactId === c.id)
+    !liveConnections.some(conn => conn.TARGET_CONTACT_ID === c.id)
   )
 
-  const handleAddConnection = () => {
+  const handleAddConnection = async () => {
     if (!contact || !selectedContactId) return
-
     const newConnection: Connection = {
       contactId: selectedContactId,
       strength: connectionStrength,
@@ -56,19 +93,18 @@ export function ConnectionModal({
       notes: connectionNotes || undefined,
       createdAt: new Date()
     }
-
-    onAddConnection(contact.id, newConnection)
-    
-    // Reset form
+    await onAddConnection(contact.id, newConnection)
     setSelectedContactId('')
     setConnectionStrength('medium')
     setConnectionType('business')
     setConnectionNotes('')
+    refreshConnections();
   }
 
-  const handleRemoveConnection = (targetContactId: string) => {
+  const handleRemoveConnection = async (targetContactId: string) => {
     if (!contact) return
-    onRemoveConnection(contact.id, targetContactId)
+    await onRemoveConnection(contact.id, targetContactId)
+    refreshConnections();
   }
 
   const getConnectionTypeIcon = (type: ConnectionType) => {
@@ -115,9 +151,12 @@ export function ConnectionModal({
         <div className="space-y-6">
           {/* Current Connections */}
           <div className="space-y-4">
-            <h3 className="text-lg font-medium">Current Connections ({(contact.connections || []).length})</h3>
-            
-            {(contact.connections || []).length === 0 ? (
+            <h3 className="text-lg font-medium">Current Connections ({liveConnections.length})</h3>
+            {loadingConnections ? (
+              <div className="text-center py-8 text-gray-500">Loading connections...</div>
+            ) : connectionsError ? (
+              <div className="text-center py-8 text-red-500">{connectionsError}</div>
+            ) : liveConnections.length === 0 ? (
               <div className="text-center py-8 text-gray-500">
                 <Users className="w-12 h-12 mx-auto mb-4" />
                 <p>No connections yet</p>
@@ -125,12 +164,11 @@ export function ConnectionModal({
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {(contact.connections || []).map((connection) => {
-                  const connectedContact = allContacts.find(c => c.id === connection.contactId)
+                {liveConnections.map((connection) => {
+                  const connectedContact = allContacts.find(c => c.id === connection.TARGET_CONTACT_ID)
                   if (!connectedContact) return null
-
                   return (
-                    <Card key={connection.contactId} className="relative">
+                    <Card key={connection.ID} className="relative">
                       <CardContent className="p-4">
                         <div className="flex items-start justify-between">
                           <div className="flex-1">
@@ -140,27 +178,24 @@ export function ConnectionModal({
                                 {connectedContact.tier}
                               </Badge>
                             </div>
-                            
                             <div className="flex items-center gap-2 mb-2">
-                              {getConnectionTypeIcon(connection.type)}
-                              <span className="text-sm text-gray-600">
-                                {getConnectionTypeLabel(connection.type)}
-                              </span>
-                              <div className={`w-2 h-2 rounded-full ${getStrengthColor(connection.strength)}`} />
+                              {/* Show type and strength */}
                               <span className="text-sm text-gray-600 capitalize">
-                                {connection.strength}
+                                {connection.TYPE}
+                              </span>
+                              <div className={`w-2 h-2 rounded-full ${connection.STRENGTH === 'strong' ? 'bg-red-500' : connection.STRENGTH === 'medium' ? 'bg-orange-500' : 'bg-gray-500'}`} />
+                              <span className="text-sm text-gray-600 capitalize">
+                                {connection.STRENGTH}
                               </span>
                             </div>
-                            
-                            {connection.notes && (
-                              <p className="text-sm text-gray-500">{connection.notes}</p>
+                            {connection.NOTES && (
+                              <p className="text-sm text-gray-500">{connection.NOTES}</p>
                             )}
                           </div>
-                          
                           <Button
                             size="sm"
                             variant="ghost"
-                            onClick={() => handleRemoveConnection(connection.contactId)}
+                            onClick={() => handleRemoveConnection(connection.TARGET_CONTACT_ID)}
                             className="text-red-500 hover:text-red-700"
                           >
                             <X className="w-4 h-4" />
@@ -177,7 +212,6 @@ export function ConnectionModal({
           {/* Add New Connection */}
           <div className="space-y-4">
             <h3 className="text-lg font-medium">Add New Connection</h3>
-            
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Select Contact</Label>
@@ -194,42 +228,6 @@ export function ConnectionModal({
                   </SelectContent>
                 </Select>
               </div>
-
-              <div className="space-y-2">
-                <Label>Connection Type</Label>
-                <Select value={connectionType} onValueChange={(value: ConnectionType) => setConnectionType(value)}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="business">
-                      <div className="flex items-center gap-2">
-                        <Building className="w-4 h-4" />
-                        Business
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="personal">
-                      <div className="flex items-center gap-2">
-                        <Heart className="w-4 h-4" />
-                        Personal
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="family">
-                      <div className="flex items-center gap-2">
-                        <Home className="w-4 h-4" />
-                        Family
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="mutual-interest">
-                      <div className="flex items-center gap-2">
-                        <Tag className="w-4 h-4" />
-                        Mutual Interest
-                      </div>
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
               <div className="space-y-2">
                 <Label>Relationship Strength</Label>
                 <Select value={connectionStrength} onValueChange={(value: ConnectionStrength) => setConnectionStrength(value)}>
@@ -258,7 +256,6 @@ export function ConnectionModal({
                   </SelectContent>
                 </Select>
               </div>
-
               <div className="space-y-2">
                 <Label>Notes (Optional)</Label>
                 <Textarea
@@ -269,7 +266,6 @@ export function ConnectionModal({
                 />
               </div>
             </div>
-
             <Button 
               onClick={handleAddConnection}
               disabled={!selectedContactId}

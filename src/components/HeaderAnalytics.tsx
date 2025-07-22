@@ -1,6 +1,6 @@
 'use client'
 
-import * as React from 'react'
+import React, { useEffect, useState } from 'react';
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
 import { getTierBadge } from '@/lib/constants'
@@ -8,76 +8,87 @@ import type { Contact } from '@/lib/types'
 import type { GlobalAnalytics } from '../lib/types';
 import { Users, TrendingUp, UserCheck } from 'lucide-react'
 
-interface HeaderAnalyticsProps {
-  globalAnalytics: GlobalAnalytics;
-}
+type AnalyticsData = {
+  totalContacts: number;
+  tier1: number;
+  tier2: number;
+  tier3: number;
+};
 
-const HeaderAnalytics = ({ globalAnalytics }: HeaderAnalyticsProps) => {
-  // Use globalAnalytics for display
+const HeaderAnalytics = ({ tier, location, team }: { tier?: string; location?: string; team?: string }) => {
+  const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    setLoading(true);
+    setError(null);
+    const params = new URLSearchParams();
+    if (tier && tier !== 'all') params.append('tier', tier);
+    if (location && location !== 'all') params.append('location', location);
+    if (team && team !== 'all') params.append('team', team);
+    const url = `/api/contacts/analytics${params.toString() ? '?' + params.toString() : ''}`;
+    fetch(url)
+      .then(res => res.json())
+      .then(data => {
+        setAnalytics(data);
+        setLoading(false);
+      })
+      .catch(() => {
+        setError('Failed to load analytics');
+        setLoading(false);
+      });
+  }, [tier, location, team]);
+
+  if (loading) return <div>Loading analytics...</div>;
+  if (error || !analytics) return <div>{error || 'No analytics data'}</div>;
+
   return (
     <div className="header-analytics">
-      <div>Total Contacts: {globalAnalytics.totalContacts}</div>
-      <div>Tier 1: {globalAnalytics.tier1Count}</div>
-      <div>Tier 2: {globalAnalytics.tier2Count}</div>
-      <div>Tier 3: {globalAnalytics.tier3Count}</div>
-      {/* Add more analytics as needed */}
+      <div>Total Contacts: {analytics.totalContacts}</div>
+      <div>Tier 1: {analytics.tier1}</div>
+      <div>Tier 2: {analytics.tier2}</div>
+      <div>Tier 3: {analytics.tier3}</div>
     </div>
   );
 };
 
 export default HeaderAnalytics;
 
-// Mobile-optimized version for smaller screens
-export function HeaderAnalyticsMobile({ contacts }: HeaderAnalyticsProps) {
-  const metrics = React.useMemo(() => {
-    const total = contacts.length
-    const tier1Count = contacts.filter(c => c.tier === 'tier1').length
-    const tier2Count = contacts.filter(c => c.tier === 'tier2').length
-    const tier3Count = contacts.filter(c => c.tier === 'tier3').length
-    
-    const oneWeekAgo = new Date()
-    oneWeekAgo.setDate(oneWeekAgo.getDate() - 7)
-    const recentContacts = contacts.filter(c => {
-      const createdAt = new Date(c.createdAt)
-      return createdAt > oneWeekAgo
-    }).length
+export function HeaderAnalyticsMobile({ tier, location, team }: { tier?: string; location?: string; team?: string }) {
+  const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-    return {
-      total,
-      tier1Count,
-      tier2Count,
-      tier3Count,
-      recentGrowth: recentContacts
-    }
-  }, [contacts])
+  useEffect(() => {
+    setLoading(true);
+    setError(null);
+    const params = new URLSearchParams();
+    if (tier && tier !== 'all') params.append('tier', tier);
+    if (location && location !== 'all') params.append('location', location);
+    if (team && team !== 'all') params.append('team', team);
+    const url = `/api/contacts/analytics${params.toString() ? '?' + params.toString() : ''}`;
+    fetch(url)
+      .then(res => res.json())
+      .then(data => {
+        setAnalytics(data);
+        setLoading(false);
+      })
+      .catch(() => {
+        setError('Failed to load analytics');
+        setLoading(false);
+      });
+  }, [tier, location, team]);
+
+  if (loading) return <div>Loading analytics...</div>;
+  if (error || !analytics) return <div>{error || 'No analytics data'}</div>;
 
   return (
-    <div className="flex items-center gap-2">
-      {/* Compact Total */}
-      <Badge variant="outline" className="bg-white/50 dark:bg-gray-800/50 border-gray-200 dark:border-gray-700">
-        <Users className="w-3 h-3 mr-1 text-blue-500 dark:text-blue-400" />
-        {metrics.total} Total
-      </Badge>
-
-      {/* Compact Tier Counts */}
-      <div className="flex items-center gap-1">
-        <Badge className="bg-pink-500 dark:bg-pink-400 text-white text-xs px-1.5 py-0.5">
-          {metrics.tier1Count}
-        </Badge>
-        <Badge className="bg-yellow-500 dark:bg-yellow-400 text-white text-xs px-1.5 py-0.5">
-          {metrics.tier2Count}
-        </Badge>
-        <Badge className="bg-green-500 dark:bg-green-400 text-white text-xs px-1.5 py-0.5">
-          {metrics.tier3Count}
-        </Badge>
-      </div>
-
-      {/* Growth Indicator */}
-      {metrics.recentGrowth > 0 && (
-        <Badge className="bg-emerald-500 dark:bg-emerald-400 text-white text-xs px-1.5 py-0.5">
-          ↗ +{metrics.recentGrowth}
-        </Badge>
-      )}
+    <div>
+      <div>Total: {analytics.totalContacts}</div>
+      <div>Tier 1: {analytics.tier1}</div>
+      <div>Tier 2: {analytics.tier2}</div>
+      <div>Tier 3: {analytics.tier3}</div>
     </div>
-  )
+  );
 } 

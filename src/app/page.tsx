@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
-import { ContactCard } from '@/components/ContactCard'
+import ContactCard from '@/components/ContactCard';
 import { ContactGridSkeleton } from '@/components/ContactCardSkeleton'
 import { AddContactModal } from '@/components/AddContactModal'
 import { EditContactModal } from '@/components/EditContactModal'
@@ -31,9 +31,11 @@ import { useTheme } from '@/components/ThemeProvider';
 import { createContext, useContext } from 'react';
 import type { GlobalContactState } from '@/lib/types';
 import { calculateGlobalAnalytics, applyGlobalFilters, paginateResults } from '@/lib/utils';
+import type { GlobalAnalytics } from '@/lib/types';
 import { loadAllContacts } from '@/lib/importExport';
 import HeaderAnalytics from '@/components/HeaderAnalytics';
-import debounce from 'lodash/debounce';
+import { debounce } from 'lodash';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 // --- GLOBAL CONTACT CONTEXT ---
 const GlobalContactContext = createContext<GlobalContactState | undefined>(undefined);
@@ -43,7 +45,16 @@ function GlobalContactProvider({ children }: { children: React.ReactNode }) {
   const [allContacts, setAllContacts] = useState<Contact[]>([]);
   const [filteredContacts, setFilteredContacts] = useState<Contact[]>([]);
   const [currentPageContacts, setCurrentPageContacts] = useState<Contact[]>([]);
-  const [globalAnalytics, setGlobalAnalytics] = useState<any>(null);
+  const [globalAnalytics, setGlobalAnalytics] = useState<GlobalAnalytics>({
+    totalContacts: 0,
+    tier1Count: 0,
+    tier2Count: 0,
+    tier3Count: 0,
+    recentlyAdded: 0,
+    byLocation: {},
+    byTeam: {},
+    activityMetrics: {}
+  });
   const [pagination, setPagination] = useState({ currentPage: 1, itemsPerPage: 30, totalPages: 1, totalFilteredResults: 0 });
   const [globalFilters, setGlobalFilters] = useState({ selectedTiers: [], selectedTeams: [], hasKids: null, isMarried: null, locations: [], dateRange: null, customFilters: {} });
   // Add globalSearch state as needed
@@ -66,17 +77,21 @@ function GlobalContactProvider({ children }: { children: React.ReactNode }) {
     setCurrentPageContacts(paginateResults(filteredContacts, pagination.currentPage, pagination.itemsPerPage));
   }, [allContacts, filteredContacts, pagination.currentPage, pagination.itemsPerPage]);
 
-  const value: GlobalContactState = {
-    allContacts,
-    filteredContacts,
-    currentPageContacts,
-    globalAnalytics,
-    pagination,
-    globalSearch: { query: '', results: [], isSearching: false, searchMetrics: { query: '', resultCount: 0, searchTime: 0, topMatches: [], searchCategories: {} } },
-    globalFilters
-  };
+  // Memoize the context value
+  const contextValue = useMemo(() => {
+    console.log('🔄 Context value updated - optimized');
+    return {
+      allContacts,
+      filteredContacts,
+      currentPageContacts,
+      globalAnalytics,
+      pagination,
+      globalSearch: { query: '', results: [], isSearching: false, searchMetrics: { query: '', resultCount: 0, searchTime: 0, topMatches: [], searchCategories: {} } },
+      globalFilters
+    };
+  }, [allContacts, filteredContacts, currentPageContacts, globalAnalytics, pagination, globalFilters]);
 
-  return <GlobalContactContext.Provider value={value}>{children}</GlobalContactContext.Provider>;
+  return <GlobalContactContext.Provider value={contextValue}>{children}</GlobalContactContext.Provider>;
 }
 
 function ContactGrid({ contacts, onEdit, onDelete }: { contacts: Contact[], onEdit: (c: Contact) => void, onDelete: (id: string) => void }) {
@@ -168,22 +183,54 @@ const AnalyticsCard: React.FC<AnalyticsCardProps> = ({ icon: Icon, count, label,
   </div>
 );
 
-// Replace PremiumHeader with animated analytics cards
-interface PremiumHeaderProps {
-  contacts: Contact[];
-}
-const PremiumHeader: React.FC<PremiumHeaderProps> = ({ contacts }) => {
-  const tier1Count = contacts.filter((c: Contact) => c.tier === 'tier1').length;
-  const tier2Count = contacts.filter((c: Contact) => c.tier === 'tier2').length;
-  const tier3Count = contacts.filter((c: Contact) => c.tier === 'tier3').length;
+// Replace PremiumHeader with backend analytics
+const PremiumHeader: React.FC = () => {
+  const [analytics, setAnalytics] = useState<{ totalContacts: number; tier1: number; tier2: number; tier3: number } | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    setLoading(true);
+    setError(null);
+    fetch('/api/contacts/analytics')
+      .then(res => res.json())
+      .then(data => {
+        setAnalytics(data);
+        setLoading(false);
+      })
+      .catch(err => {
+        setError('Failed to load analytics');
+        setLoading(false);
+      });
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-6 animate-pulse h-24" />
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-6 animate-pulse h-24" />
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-6 animate-pulse h-24" />
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-6 animate-pulse h-24" />
+        </div>
+      </div>
+    );
+  }
+  if (error || !analytics) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div className="text-red-500">{error || 'No analytics data'}</div>
+      </div>
+    );
+  }
   return (
     <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-900 border-b border-gray-200 dark:border-gray-700">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
-          <AnalyticsCard icon={Users} count={contacts.length} label="Total Contacts" gradient="from-blue-500 to-blue-600" delay={0} />
-          <AnalyticsCard icon={Star} count={tier1Count} label="Tier 1 Contacts" gradient="from-pink-500 to-pink-600" delay={100} />
-          <AnalyticsCard icon={Target} count={tier2Count} label="Tier 2 Contacts" gradient="from-yellow-500 to-yellow-600" delay={200} />
-          <AnalyticsCard icon={Network} count={tier3Count} label="Tier 3 Contacts" gradient="from-green-500 to-green-600" delay={300} />
+          <AnalyticsCard icon={Users} count={analytics.totalContacts} label="Total Contacts" gradient="from-blue-500 to-blue-600" delay={0} />
+          <AnalyticsCard icon={Star} count={analytics.tier1} label="Tier 1 Contacts" gradient="from-pink-500 to-pink-600" delay={100} />
+          <AnalyticsCard icon={Target} count={analytics.tier2} label="Tier 2 Contacts" gradient="from-yellow-500 to-yellow-600" delay={200} />
+          <AnalyticsCard icon={Network} count={analytics.tier3} label="Tier 3 Contacts" gradient="from-green-500 to-green-600" delay={300} />
         </div>
       </div>
     </div>
@@ -199,23 +246,33 @@ interface PremiumSearchBarProps {
 const PremiumSearchBar: React.FC<PremiumSearchBarProps> = ({ searchQuery, setSearchQuery, contacts }) => {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [suggestions, setSuggestions] = useState<Contact[]>([]);
+  const [loadingSuggestions, setLoadingSuggestions] = useState(false);
 
-  const generateSuggestions = useCallback((query: string) => {
-    if (!query.trim()) return [];
-    const filtered = contacts
-      .filter(contact => 
-        contact.name.toLowerCase().includes(query.toLowerCase()) ||
-        contact.email?.toLowerCase().includes(query.toLowerCase())
-      )
-      .slice(0, 5);
-    return filtered;
-  }, [contacts]);
+  // Fetch suggestions from backend
+  const fetchSuggestions = useCallback(async (query: string) => {
+    if (!query.trim()) {
+      setSuggestions([]);
+      setShowSuggestions(false);
+      return;
+    }
+    setLoadingSuggestions(true);
+    try {
+      const response = await fetch(`/api/contacts/search?query=${encodeURIComponent(query)}&page=1&limit=5`);
+      if (!response.ok) throw new Error('Failed to fetch suggestions');
+      const data = await response.json();
+      setSuggestions(data.contacts || []);
+      setShowSuggestions((data.contacts || []).length > 0);
+    } catch (err) {
+      setSuggestions([]);
+      setShowSuggestions(false);
+    } finally {
+      setLoadingSuggestions(false);
+    }
+  }, []);
 
   useEffect(() => {
-    const newSuggestions = generateSuggestions(searchQuery);
-    setSuggestions(newSuggestions);
-    setShowSuggestions(searchQuery.length > 0 && newSuggestions.length > 0);
-  }, [searchQuery, generateSuggestions]);
+    fetchSuggestions(searchQuery);
+  }, [searchQuery, fetchSuggestions]);
 
   return (
     <div className="relative">
@@ -227,8 +284,8 @@ const PremiumSearchBar: React.FC<PremiumSearchBarProps> = ({ searchQuery, setSea
           type="text"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder={`Search across all ${contacts.length} contacts...`}
-          className="block w-full pl-12 pr-12 py-4 bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 rounded-2xl text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 transition-all duration-300 shadow-sm hover:shadow-lg focus:shadow-xl group-hover:border-gray-300"
+          placeholder={`Search contacts...`}
+          className="block w-full pl-12 pr-12 py-4 bg-input border border-border rounded-2xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-4 focus:ring-ring transition-all duration-300 shadow-sm hover:shadow-lg focus:shadow-xl group-hover:border-gray-300"
         />
         {/* Enhanced clear button */}
         {searchQuery && (
@@ -244,10 +301,10 @@ const PremiumSearchBar: React.FC<PremiumSearchBarProps> = ({ searchQuery, setSea
       </div>
       {/* Live suggestions dropdown */}
       {showSuggestions && (
-        <div className="absolute top-full mt-2 left-0 right-0 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-xl z-50 overflow-hidden animate-slideDown">
+        <div className="absolute top-full mt-2 left-0 right-0 bg-card border border-border rounded-xl shadow-xl z-50 overflow-hidden animate-slideDown">
           <div className="p-2">
-            <div className="text-xs text-gray-500 dark:text-gray-400 px-3 py-2 font-medium">
-              Quick Results ({suggestions.length})
+            <div className="text-xs text-muted-foreground px-3 py-2 font-medium">
+              {loadingSuggestions ? 'Searching...' : `Quick Results (${suggestions.length})`}
             </div>
             {suggestions.map((contact, index) => (
               <button
@@ -256,7 +313,7 @@ const PremiumSearchBar: React.FC<PremiumSearchBarProps> = ({ searchQuery, setSea
                   setSearchQuery(contact.name);
                   setShowSuggestions(false);
                 }}
-                className="w-full flex items-center space-x-3 px-3 py-2 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors duration-200"
+                className="w-full flex items-center space-x-3 px-3 py-2 hover:bg-muted rounded-lg transition-colors duration-200"
                 style={{ animationDelay: `${index * 50}ms` }}
               >
                 <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold ${
@@ -267,10 +324,10 @@ const PremiumSearchBar: React.FC<PremiumSearchBarProps> = ({ searchQuery, setSea
                   {contact.name.split(' ').map(n => n[0]).join('').toUpperCase()}
                 </div>
                 <div className="flex-1 text-left">
-                  <div className="text-sm font-medium text-gray-900 dark:text-white">
+                  <div className="text-sm font-medium text-card-foreground">
                     {contact.name}
                   </div>
-                  <div className="text-xs text-gray-500 dark:text-gray-400">
+                  <div className="text-xs text-muted-foreground">
                     {contact.email}
                   </div>
                 </div>
@@ -308,19 +365,96 @@ export default function Home() {
     interests: []
   })
   const [searchQuery, setSearchQuery] = useState('');
+  const [tierFilter, setTierFilter] = useState<string>('all');
+  const [locationFilter, setLocationFilter] = useState<string>('all');
+  const [filterLoading, setFilterLoading] = useState(false);
+  const [filterError, setFilterError] = useState<string | null>(null);
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 30;
-  const totalPages = Math.ceil(filteredContacts.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const paginatedContacts = filteredContacts.slice(startIndex, endIndex);
+  const [itemsPerPage] = useState(30);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
 
-  // Reset to page 1 when search or filters change
+  // Fetch paginated contacts from backend
+  const fetchContacts = useCallback(async (page = 1) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await fetch(`/api/contacts?page=${page}&limit=${itemsPerPage}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch contacts');
+      }
+      const data = await response.json();
+      if (data && Array.isArray(data.contacts) && data.pagination) {
+        setContacts(data.contacts);
+        setFilteredContacts(data.contacts); // For now, filtered = paginated
+        setTotalPages(data.pagination.totalPages);
+        setTotalItems(data.pagination.totalItems);
+      } else {
+        setContacts([]);
+        setFilteredContacts([]);
+        setTotalPages(1);
+        setTotalItems(0);
+        setError('Invalid data format received');
+      }
+    } catch (error) {
+      setContacts([]);
+      setFilteredContacts([]);
+      setTotalPages(1);
+      setTotalItems(0);
+      setError(error instanceof Error ? error.message : 'Unknown error');
+    } finally {
+      setLoading(false);
+    }
+  }, [itemsPerPage]);
+
+  // Fetch contacts when currentPage changes
   useEffect(() => {
-    setCurrentPage(1);
-  }, [searchQuery, activeFilters]);
+    fetchContacts(currentPage);
+  }, [fetchContacts, currentPage]);
+
+  // Pagination controls component
+  const PaginationControls = () => (
+    <div className="flex items-center justify-between p-4 bg-card border-t border-border">
+      <div className="text-muted-foreground text-sm">
+        Showing page {currentPage} of {totalPages} ({totalItems} contacts)
+      </div>
+      <div className="flex items-center space-x-2">
+        <button
+          onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+          disabled={currentPage <= 1}
+          className="px-4 py-2 bg-secondary text-secondary-foreground rounded-lg hover:bg-secondary/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          Previous
+        </button>
+        <span className="text-muted-foreground">
+          Page {currentPage} of {totalPages}
+        </span>
+        <button
+          onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+          disabled={currentPage >= totalPages}
+          className="px-4 py-2 bg-secondary text-secondary-foreground rounded-lg hover:bg-secondary/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          Next
+        </button>
+      </div>
+    </div>
+  );
+
+  const global = useGlobalContacts();
+
+  // Scroll and highlight logic
+  const scrollToAndHighlightContact = (contactId: string) => {
+    const el = document.querySelector(`[data-contact-id='${contactId}']`);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      el.classList.add('ring-4', 'ring-blue-400', 'transition');
+      setTimeout(() => {
+        el.classList.remove('ring-4', 'ring-blue-400', 'transition');
+      }, 2000);
+    }
+  };
 
   // Debounced search to reduce filtering frequency
   const debouncedSearch = useCallback(
@@ -344,83 +478,6 @@ export default function Home() {
     setSearchQuery(e.target.value);
     debouncedSearch(e.target.value);
   };
-
-  // Pagination controls component
-  const PaginationControls = () => (
-    <div className="flex items-center justify-between px-6 py-4 bg-gray-800 border-t border-gray-700">
-      <div className="text-sm text-gray-400">
-        Showing {startIndex + 1} to {Math.min(endIndex, filteredContacts.length)} of {filteredContacts.length} contacts
-      </div>
-      <div className="flex items-center space-x-4">
-        <button
-          onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-          disabled={currentPage <= 1}
-          className="px-4 py-2 bg-gray-700 text-white rounded hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          Previous
-        </button>
-        <span className="text-gray-400">
-          Page {currentPage} of {totalPages}
-        </span>
-        <button
-          onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-          disabled={currentPage >= totalPages}
-          className="px-4 py-2 bg-gray-700 text-white rounded hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          Next
-        </button>
-      </div>
-    </div>
-  );
-
-  const global = useGlobalContacts();
-
-  // Scroll and highlight logic
-  const scrollToAndHighlightContact = (contactId: string) => {
-    const el = document.querySelector(`[data-contact-id='${contactId}']`);
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      el.classList.add('ring-4', 'ring-blue-400', 'transition');
-      setTimeout(() => {
-        el.classList.remove('ring-4', 'ring-blue-400', 'transition');
-      }, 2000);
-    }
-  };
-
-  const fetchContacts = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    console.log('Fetching contacts...');
-    try {
-      const response = await fetch('/api/contacts');
-      if (!response.ok) {
-        throw new Error('Failed to fetch contacts');
-      }
-      const data = await response.json();
-      // Ensure data is an array
-      if (Array.isArray(data)) {
-        setContacts(data);
-        setFilteredContacts(data);
-      } else {
-        console.error('API returned non-array data:', data);
-        setContacts([]);
-        setFilteredContacts([]);
-        setError('Invalid data format received');
-      }
-    } catch (error: any) {
-      console.error('Error fetching contacts:', error);
-      setContacts([]);
-      setFilteredContacts([]);
-      setError(error.message || 'Unknown error');
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  // Use fetchContacts on mount
-  useEffect(() => {
-    fetchContacts();
-  }, [fetchContacts]);
 
   useEffect(() => {
     console.log('🔍 Page component mounted');
@@ -498,7 +555,11 @@ export default function Home() {
       toast.success('Contact updated successfully');
       return result;
     } catch (error) {
-      console.error('Failed to update contact:', error);
+      if (error instanceof Error) {
+        console.error('Failed to update contact:', error);
+      } else {
+        console.error('Failed to update contact:', error);
+      }
     }
   };
 
@@ -518,9 +579,14 @@ export default function Home() {
       setContacts(prev => prev.filter(c => c.id !== id));
       setFilteredContacts(prev => prev.filter(c => c.id !== id));
       toast.success('Contact deleted successfully');
-    } catch (error: any) {
-      console.error('❌ UI: Delete failed:', error);
-      toast.error(`Failed to delete contact: ${error.message}`);
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        console.error('❌ UI: Delete failed:', error);
+        toast.error(`Failed to delete contact: ${error.message}`);
+      } else {
+        console.error('❌ UI: Delete failed:', error);
+        toast.error('Failed to delete contact: Unknown error');
+      }
     }
   };
 
@@ -550,41 +616,41 @@ export default function Home() {
     }
   }, [handleDeleteContact])
 
-  const handleAddConnection = useCallback((contactId: string, connection: Connection) => {
+  // Add or remove a connection using the backend API
+  const handleAddConnection = async (contactId: string, connection: Connection) => {
     try {
-      const updatedContact = contacts.find(c => c.id === contactId)
-      if (!updatedContact) return
-
-      const newContact = {
-        ...updatedContact,
-        connections: [...(updatedContact.connections || []), connection],
-        updatedAt: new Date()
-      }
-
-      handleUpdateContact(contactId, newContact);
+      await fetch(`/api/contacts/${contactId}/connections`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          targetContactId: connection.contactId,
+          strength: connection.strength,
+          type: connection.type,
+          notes: connection.notes,
+        })
+      });
+      // Optionally, refresh contacts or connections here
+      toast.success('Connection added!');
+      fetchContacts(currentPage);
     } catch (error) {
-      console.error('Error adding connection:', error)
-      alert('Failed to add connection')
+      toast.error('Failed to add connection');
     }
-  }, [contacts, handleUpdateContact])
+  };
 
-  const handleRemoveConnection = useCallback((contactId: string, targetContactId: string) => {
+  const handleRemoveConnection = async (contactId: string, targetContactId: string) => {
     try {
-      const updatedContact = contacts.find(c => c.id === contactId)
-      if (!updatedContact) return
-
-      const newContact = {
-        ...updatedContact,
-        connections: (updatedContact.connections || []).filter(c => c.contactId !== targetContactId),
-        updatedAt: new Date()
-      }
-
-      handleUpdateContact(contactId, newContact);
+      await fetch(`/api/contacts/${contactId}/connections`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ targetContactId })
+      });
+      // Optionally, refresh contacts or connections here
+      toast.success('Connection removed!');
+      fetchContacts(currentPage);
     } catch (error) {
-      console.error('Error removing connection:', error)
-      alert('Failed to remove connection')
+      toast.error('Failed to remove connection');
     }
-  }, [contacts, handleUpdateContact])
+  };
 
   const handleManageConnections = useCallback((contact: Contact) => {
     setSelectedContact(contact)
@@ -662,6 +728,45 @@ export default function Home() {
     return filteredContacts.slice(visibleRange.start, visibleRange.end);
   }, [filteredContacts, visibleRange]);
 
+  // Unique locations for filter dropdown
+  const uniqueLocations = useMemo(() => {
+    const locs = contacts.map(c => c.location).filter((loc): loc is string => Boolean(loc));
+    return Array.from(new Set(locs));
+  }, [contacts]);
+
+  // Fetch contacts with filters
+  const fetchFilteredContacts = useCallback(async (page = 1, tier = tierFilter, location = locationFilter) => {
+    setFilterLoading(true);
+    setFilterError(null);
+    try {
+      const params = new URLSearchParams();
+      params.append('page', String(page));
+      params.append('limit', String(itemsPerPage));
+      if (tier && tier !== 'all') params.append('tier', tier);
+      if (location && location !== 'all') params.append('location', location);
+      const response = await fetch(`/api/contacts?${params.toString()}`);
+      if (!response.ok) throw new Error('Failed to fetch filtered contacts');
+      const data = await response.json();
+      setContacts(data.contacts || []);
+      setFilteredContacts(data.contacts || []);
+      setTotalPages(data.pagination?.totalPages || 1);
+      setTotalItems(data.pagination?.totalItems || 0);
+    } catch (err) {
+      setContacts([]);
+      setFilteredContacts([]);
+      setTotalPages(1);
+      setTotalItems(0);
+      setFilterError('Failed to fetch filtered contacts');
+    } finally {
+      setFilterLoading(false);
+    }
+  }, [itemsPerPage, tierFilter, locationFilter]);
+
+  // Refetch when filters or page change
+  useEffect(() => {
+    fetchFilteredContacts(currentPage, tierFilter, locationFilter);
+  }, [fetchFilteredContacts, currentPage, tierFilter, locationFilter]);
+
   return (
     <GlobalContactProvider>
       <ProtectedRoute>
@@ -686,216 +791,154 @@ export default function Home() {
                     <p className="text-sm text-gray-500 dark:text-gray-400 transition-colors duration-300">Enterprise relationship management</p>
                   </div>
                 </div>
-              
-              <div className="flex items-center gap-2">
-                {/* User Info */}
-                {user && (
-                  <div className="flex items-center gap-2 mr-4">
-                    <Badge className={`text-xs ${getTeamColor(user.team)}`}>
-                      {user.team}
-                    </Badge>
-                    <span className="text-sm text-gray-700 dark:text-gray-300">
-                      {user.username}
-                    </span>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={logout}
-                      className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-                    >
-                      Logout
-                    </Button>
+                <div className="flex items-center gap-2">
+                  {/* User Info */}
+                  {user && (
+                    <div className="flex items-center gap-2 mr-4">
+                      <Badge className={`text-xs ${getTeamColor(user.team)}`}>{user.team}</Badge>
+                      <span className="text-sm text-gray-700 dark:text-gray-300">{user.username}</span>
+                      <Button variant="ghost" size="sm" onClick={logout} className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">Logout</Button>
+                    </div>
+                  )}
+                  <ThemeToggle />
+                  {/* View Mode Toggle */}
+                  <div className="flex items-center border border-gray-200 dark:border-gray-700 rounded-lg p-1 bg-gray-50 dark:bg-gray-800 transition-colors duration-300">
+                    <Button variant={viewMode === 'grid' ? 'default' : 'ghost'} size="sm" onClick={() => setViewMode('grid')} className="h-8 px-3"><Grid className="w-4 h-4" /></Button>
+                    <Button variant={viewMode === 'bulk' ? 'default' : 'ghost'} size="sm" onClick={() => setViewMode('bulk')} className="h-8 px-3"><List className="w-4 h-4" /></Button>
+                    <Button variant={viewMode === 'network' ? 'default' : 'ghost'} size="sm" onClick={() => setViewMode('network')} className="h-8 px-3"><Network className="w-4 h-4" /></Button>
+                    <Button variant={viewMode === 'insights' ? 'default' : 'ghost'} size="sm" onClick={() => setViewMode('insights')} className="h-8 px-3"><BarChart3 className="w-4 h-4" /></Button>
                   </div>
-                )}
-                
-                {/* Theme Toggle */}
-                <ThemeToggle />
-                
-                {/* View Mode Toggle */}
-                <div className="flex items-center border border-gray-200 dark:border-gray-700 rounded-lg p-1 bg-gray-50 dark:bg-gray-800 transition-colors duration-300">
-                  <Button
-                    variant={viewMode === 'grid' ? 'default' : 'ghost'}
-                    size="sm"
-                    onClick={() => setViewMode('grid')}
-                    className="h-8 px-3"
-                  >
-                    <Grid className="w-4 h-4" />
-                  </Button>
-                  <Button
-                    variant={viewMode === 'bulk' ? 'default' : 'ghost'}
-                    size="sm"
-                    onClick={() => setViewMode('bulk')}
-                    className="h-8 px-3"
-                  >
-                    <List className="w-4 h-4" />
-                  </Button>
-                  <Button
-                    variant={viewMode === 'network' ? 'default' : 'ghost'}
-                    size="sm"
-                    onClick={() => setViewMode('network')}
-                    className="h-8 px-3"
-                  >
-                    <Network className="w-4 h-4" />
-                  </Button>
-                  <Button
-                    variant={viewMode === 'insights' ? 'default' : 'ghost'}
-                    size="sm"
-                    onClick={() => setViewMode('insights')}
-                    className="h-8 px-3"
-                  >
-                    <BarChart3 className="w-4 h-4" />
-                  </Button>
-                </div>
-
-                {/* Import/Export Buttons */}
-                <Button
-                  onClick={handleImportClick}
-                  variant="outline"
-                  size="sm"
-                  className="flex items-center gap-2"
-                  type="button"
-                  disabled={false}
-                >
-                  <Upload className="w-4 h-4" />
-                  <span>Import</span>
-                </Button>
-                
-                <ExportButton contacts={filteredContacts} />
-                
-                {/* Voice Notes Demo Button */}
-                <Button
-                  onClick={() => setShowVoiceNotesDemo(true)}
-                  variant="outline"
-                  className="bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100"
-                >
-                  <Mic className="w-4 h-4" />
-                  Voice Demo
-                </Button>
-                
-                {/* Add Contact Button */}
-                <Button
-                  onClick={() => setShowAddModal(true)}
-                  className="flex items-center gap-2"
-                >
-                  <Plus className="w-4 h-4" />
-                  Add Contact
-                </Button>
-              </div> {/* closes .flex.items-center.gap-2 */}
-            </div> {/* closes .flex.items-center.justify-between.h-20 */}
-          </div> {/* closes .max-w-[95%] mx-auto px-2 sm:px-4 lg:px-6 */}
-        </header>
+                  {/* Import/Export Buttons */}
+                  <Button onClick={handleImportClick} variant="outline" size="sm" className="flex items-center gap-2" type="button" disabled={false}><Upload className="w-4 h-4" /><span>Import</span></Button>
+                  <ExportButton contacts={filteredContacts} />
+                  {/* Voice Notes Demo Button */}
+                  <Button onClick={() => setShowVoiceNotesDemo(true)} variant="outline" className="bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100"><Mic className="w-4 h-4" />Voice Demo</Button>
+                  {/* Add Contact Button */}
+                  <Button onClick={() => setShowAddModal(true)} className="flex items-center gap-2"><Plus className="w-4 h-4" />Add Contact</Button>
+                </div> {/* closes .flex.items-center.gap-2 */}
+              </div> {/* closes .flex.items-center.justify-between.h-20 */}
+            </div> {/* closes .max-w-[95%] mx-auto px-2 sm:px-4 lg:px-6 */}
+          </header>
           {/* Premium Analytics Header */}
-          <PremiumHeader contacts={contacts} />
+          <PremiumHeader />
           {/* Enhanced Premium Search Bar */}
-          <div className="max-w-2xl mx-auto mt-8 mb-4">
-            <PremiumSearchBar searchQuery={searchQuery} setSearchQuery={setSearchQuery} contacts={contacts} />
-          </div>
-          {/* Remove or comment out the old analytics bar and HeaderAnalytics usage */}
-          {/* <div className="glass-card border-b border-gray-200/50 dark:border-gray-700/50 transition-colors duration-300">
-            <div className="max-w-[95%] mx-auto px-2 sm:px-4 lg:px-6 py-6">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-6">
-                  <div className="hidden md:block">
-                    {global?.globalAnalytics && (
-                      <HeaderAnalytics globalAnalytics={global.globalAnalytics} />
-                    )}
-                  </div>
-                  <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-                    <span className="hidden sm:inline">Last updated: {new Date().toLocaleTimeString()}</span>
-                  </div>
-                </div>
-              </div>
+          <div className="max-w-7xl mx-auto mt-8 mb-4 flex flex-wrap items-center gap-4 px-4 sm:px-6 lg:px-8">
+            <div className="flex-1 min-w-[250px]">
+              <PremiumSearchBar searchQuery={searchQuery} setSearchQuery={setSearchQuery} contacts={contacts} />
             </div>
-          </div> */}
-
-        {/* Main Content */}
-        <main className="max-w-[95%] mx-auto px-2 sm:px-4 lg:px-6 py-8">
-          <div className="space-y-8">
-            {/* Search and Filters */}
-            {/* <AdvancedSearch
-              contacts={contacts}
-              onFilterChange={handleFilterChange}
-              activeFilters={activeFilters}
-              onActiveFiltersChange={setActiveFilters}
-            /> */}
-
-            {/* Contact Display - RESTORED */}
-            {viewMode === 'grid' && (
-              loading ? (
-                <div className="text-center py-12">
-                  <div className="text-gray-400">Loading contacts...</div>
-                </div>
-              ) : (
-                <>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-8 px-6 py-6">
-                    {paginatedContacts.map((contact, index) => (
-                      <ContactCard
-                        key={contact.id}
-                        contact={contact}
-                        onEdit={handleEditContact}
-                        onDelete={() => handleDeleteContact(contact.id)}
-                      />
-                    ))}
-                  </div>
-                  <PaginationControls />
-                </>
-              )
-            )}
-
-            {viewMode === 'bulk' && (
-              <BulkOperations
-                contacts={filteredContacts}
-                selectedContacts={selectedContacts}
-                onSelectionChange={setSelectedContacts}
-                onDeleteContacts={handleBulkDeleteContacts}
-                onUpdateContacts={handleBulkUpdateContacts}
-              />
-            )}
-
-            {viewMode === 'network' && (
-              <NetworkVisualization
-                contacts={contacts}
-                onContactSelect={handleManageConnections}
-                selectedContactId={selectedContact?.id}
-              />
-            )}
-
-            {viewMode === 'insights' && (
-              <NetworkInsights
-                contacts={contacts}
-                onContactSelect={handleManageConnections}
-                onAddConnection={(contact1, contact2) => {
-                  // Create a connection object from contact2
-                  const newConnection: Connection = {
-                    contactId: contact2.id,
-                    strength: 'medium',
-                    type: 'business',
-                    createdAt: new Date()
-                  };
-                  handleAddConnection(contact1.id, newConnection);
-                }}
-              />
-            )}
-
-            {/* Empty State */}
-            {(global?.filteredContacts.length === 0 && global?.allContacts.length > 0) && (
-              <div className="text-center py-12">
-                <p className="text-gray-500 dark:text-gray-400 transition-colors duration-300">No contacts match your current filters.</p>
-              </div>
-            )}
-
-            {global?.allContacts.length === 0 && (
-              <div className="text-center py-12">
-                <p className="text-gray-500 dark:text-gray-400 transition-colors duration-300">No contacts yet. Add your first contact to get started!</p>
-              </div>
-            )}
+            <Select value={tierFilter} onValueChange={setTierFilter}>
+              <SelectTrigger className="w-28">
+                <SelectValue placeholder="Tier" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Tiers</SelectItem>
+                <SelectItem value="tier1">Tier 1</SelectItem>
+                <SelectItem value="tier2">Tier 2</SelectItem>
+                <SelectItem value="tier3">Tier 3</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={locationFilter} onValueChange={setLocationFilter}>
+              <SelectTrigger className="w-36">
+                <SelectValue placeholder="Location" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Locations</SelectItem>
+                {uniqueLocations.map(loc => (
+                  <SelectItem key={loc} value={loc}>{loc}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {filterLoading && <span className="text-sm text-gray-500">Loading...</span>}
+            {filterError && <span className="text-sm text-red-500">{filterError}</span>}
           </div>
-        </main>
+          {/* Main Content */}
+          <main className="max-w-[95%] mx-auto px-2 sm:px-4 lg:px-6 py-8">
+            <div className="space-y-8">
+              {/* Search and Filters */}
+              {/* <AdvancedSearch
+                contacts={contacts}
+                onFilterChange={handleFilterChange}
+                activeFilters={activeFilters}
+                onActiveFiltersChange={setActiveFilters}
+              /> */}
 
-        {/* AI Chat */}
-        <AIChat contacts={filteredContacts} />
+              {/* Contact Display - RESTORED */}
+              {viewMode === 'grid' && (
+                loading ? (
+                  <div className="text-center py-12">
+                    <div className="text-gray-400">Loading contacts...</div>
+                  </div>
+                ) : (
+                  <>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-8 px-6 py-6">
+                      {contacts.map((contact, index) => (
+                        <ContactCard
+                          key={contact.id}
+                          contact={contact}
+                          onEdit={handleEditContact}
+                          onDelete={() => handleDeleteContact(contact.id)}
+                        />
+                      ))}
+                    </div>
+                    <PaginationControls />
+                  </>
+                )
+              )}
 
-                {/* Modals */}
+              {viewMode === 'bulk' && (
+                <BulkOperations
+                  contacts={filteredContacts}
+                  selectedContacts={selectedContacts}
+                  onSelectionChange={setSelectedContacts}
+                  onDeleteContacts={handleBulkDeleteContacts}
+                  onUpdateContacts={handleBulkUpdateContacts}
+                />
+              )}
+
+              {viewMode === 'network' && (
+                <NetworkVisualization
+                  contacts={contacts}
+                  onContactSelect={handleManageConnections}
+                  selectedContactId={selectedContact?.id}
+                />
+              )}
+
+              {viewMode === 'insights' && (
+                <NetworkInsights
+                  contacts={contacts}
+                  onContactSelect={handleManageConnections}
+                  onAddConnection={(contact1, contact2) => {
+                    // Create a connection object from contact2
+                    const newConnection: Connection = {
+                      contactId: contact2.id,
+                      strength: 'medium',
+                      type: 'business',
+                      createdAt: new Date()
+                    };
+                    handleAddConnection(contact1.id, newConnection);
+                  }}
+                />
+              )}
+
+              {/* Empty State */}
+              {(global?.filteredContacts.length === 0 && global?.allContacts.length > 0) && (
+                <div className="text-center py-12">
+                  <p className="text-gray-500 dark:text-gray-400 transition-colors duration-300">No contacts match your current filters.</p>
+                </div>
+              )}
+
+              {global?.allContacts.length === 0 && (
+                <div className="text-center py-12">
+                  <p className="text-gray-500 dark:text-gray-400 transition-colors duration-300">No contacts yet. Add your first contact to get started!</p>
+                </div>
+              )}
+            </div>
+          </main>
+
+          {/* AI Chat */}
+          <AIChat contacts={filteredContacts} />
+
+          {/* Modals */}
           <AddContactModal
             open={showAddModal}
             onOpenChange={setShowAddModal}
@@ -923,39 +966,39 @@ export default function Home() {
             </div>
           )}
 
-        <EditContactModal
-          open={showEditModal}
-          onOpenChange={setShowEditModal}
-          contact={selectedContact}
-          onUpdate={handleUpdateContact}
-        />
+          <EditContactModal
+            open={showEditModal}
+            onOpenChange={setShowEditModal}
+            contact={selectedContact}
+            onUpdate={handleUpdateContact}
+          />
 
-        <DeleteConfirmationModal
-          open={showDeleteModal}
-          onOpenChange={setShowDeleteModal}
-          contact={selectedContact}
-          onConfirm={handleConfirmDeleteContact}
-        />
+          <DeleteConfirmationModal
+            open={showDeleteModal}
+            onOpenChange={setShowDeleteModal}
+            contact={selectedContact}
+            onConfirm={handleConfirmDeleteContact}
+          />
 
-        {/* Import Modal with debug logging */}
-        <ImportModal
-          isOpen={showImportModal}
-          onClose={() => setShowImportModal(false)}
-          onImportComplete={handleImportComplete}
-        />
-        {/* Debug info bar */}
-        <div style={{position: 'fixed', bottom: '10px', left: '10px', background: 'black', color: 'white', padding: '5px', fontSize: '12px', zIndex: 9999}}>
-          Modal State: {showImportModal ? 'OPEN' : 'CLOSED'}
-        </div>
+          {/* Import Modal with debug logging */}
+          <ImportModal
+            isOpen={showImportModal}
+            onClose={() => setShowImportModal(false)}
+            onImportComplete={handleImportComplete}
+          />
+          {/* Debug info bar */}
+          <div style={{position: 'fixed', bottom: '10px', left: '10px', background: 'black', color: 'white', padding: '5px', fontSize: '12px', zIndex: 9999}}>
+            Modal State: {showImportModal ? 'OPEN' : 'CLOSED'}
+          </div>
 
-        <ConnectionModal
-          open={showConnectionModal}
-          onOpenChange={setShowConnectionModal}
-          contact={selectedContact}
-          allContacts={contacts}
-          onAddConnection={handleAddConnection}
-          onRemoveConnection={handleRemoveConnection}
-        />
+          <ConnectionModal
+            open={showConnectionModal}
+            onOpenChange={setShowConnectionModal}
+            contact={selectedContact}
+            allContacts={contacts}
+            onAddConnection={handleAddConnection}
+            onRemoveConnection={handleRemoveConnection}
+          />
         </div>
       </ProtectedRoute>
     </GlobalContactProvider>
