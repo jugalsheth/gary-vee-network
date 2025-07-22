@@ -14,35 +14,48 @@ export interface ContactCardProps {
 export function ContactCard({ contact, onEdit, onDelete }: ContactCardProps) {
   if (!contact || !contact.name || !contact.id) return null;
   return (
-    <div className="group relative bg-white dark:bg-gray-800 rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border border-gray-200 dark:border-gray-700 overflow-hidden" data-contact-id={contact.id}>
-      {/* Enhanced tier indicator bar */}
-      <div className={`h-1.5 w-full bg-gradient-to-r transition-all duration-300 group-hover:h-2 ${
-        contact.tier === 'tier1' ? 'from-pink-400 via-pink-500 to-pink-600' :
-        contact.tier === 'tier2' ? 'from-yellow-400 via-yellow-500 to-yellow-600' :
-        'from-green-400 via-green-500 to-green-600'
-      }`} />
+    <div
+      className="group relative bg-white dark:bg-gray-800 rounded-xl shadow-sm hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 hover:scale-[1.02] border border-gray-200 dark:border-gray-700 overflow-hidden animate-fadeInUp"
+      data-contact-id={contact.id}
+    >
+      {/* Enhanced tier indicator with pulse and shimmer */}
+      <div className={`relative h-1.5 w-full bg-gradient-to-r transition-all duration-500 group-hover:h-3 ${
+        contact.tier === 'tier1' ? 'from-pink-400 via-pink-500 to-pink-600 group-hover:shadow-lg group-hover:shadow-pink-500/50' :
+        contact.tier === 'tier2' ? 'from-yellow-400 via-yellow-500 to-yellow-600 group-hover:shadow-lg group-hover:shadow-yellow-500/50' :
+        'from-green-400 via-green-500 to-green-600 group-hover:shadow-lg group-hover:shadow-green-500/50'
+      }`}>
+        {/* Animated shimmer effect on hover */}
+        <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none">
+          <div className="h-full w-full bg-gradient-to-r from-transparent via-white/30 to-transparent animate-shimmer" />
+        </div>
+      </div>
       {/* Subtle glassmorphism overlay */}
       <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
       <div className="relative p-6">
         {/* Enhanced header section */}
         <div className="flex items-start justify-between mb-4">
           <div className="flex items-center space-x-3">
-            {/* Premium avatar with glow effect */}
-            <div className={`relative w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-lg transition-all duration-300 group-hover:scale-105 group-hover:shadow-xl ${
-              contact.tier === 'tier1' ? 'bg-gradient-to-br from-pink-500 to-pink-600 group-hover:shadow-pink-500/30' :
-              contact.tier === 'tier2' ? 'bg-gradient-to-br from-yellow-500 to-yellow-600 group-hover:shadow-yellow-500/30' :
-              'bg-gradient-to-br from-green-500 to-green-600 group-hover:shadow-green-500/30'
+            {/* Avatar with enhanced glow, bounce, and animated pulse ring */}
+            <div className={`relative w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-lg transition-all duration-500 group-hover:scale-110 group-hover:rotate-3 group-hover:shadow-2xl ${
+              contact.tier === 'tier1' ? 'bg-gradient-to-br from-pink-500 to-pink-600 group-hover:shadow-pink-500/40' :
+              contact.tier === 'tier2' ? 'bg-gradient-to-br from-yellow-500 to-yellow-600 group-hover:shadow-yellow-500/40' :
+              'bg-gradient-to-br from-green-500 to-green-600 group-hover:shadow-green-500/40'
             }`}>
               {contact.name?.split(' ').map(n => n[0]).join('').toUpperCase() || 'N/A'}
-              {/* Animated ring on hover */}
-              <div className={`absolute inset-0 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 ring-2 ${
-                contact.tier === 'tier1' ? 'ring-pink-400/50' :
-                contact.tier === 'tier2' ? 'ring-yellow-400/50' :
-                'ring-green-400/50'
+              {/* Animated pulse ring */}
+              <div className={`absolute -inset-1 rounded-full opacity-0 group-hover:opacity-75 group-hover:animate-ping ${
+                contact.tier === 'tier1' ? 'bg-pink-400' :
+                contact.tier === 'tier2' ? 'bg-yellow-400' :
+                'bg-green-400'
               }`} />
             </div>
+            {/* Enhanced name with gradient text on hover */}
             <div className="flex-1 min-w-0">
-              <h3 className="font-semibold text-gray-900 dark:text-white text-lg leading-tight truncate">
+              <h3 className={`font-semibold text-gray-900 dark:text-white text-lg leading-tight truncate transition-all duration-300 group-hover:bg-gradient-to-r group-hover:bg-clip-text group-hover:text-transparent ${
+                contact.tier === 'tier1' ? 'group-hover:from-pink-500 group-hover:to-pink-600' :
+                contact.tier === 'tier2' ? 'group-hover:from-yellow-500 group-hover:to-yellow-600' :
+                'group-hover:from-green-500 group-hover:to-green-600'
+              }`}>
                 {contact.name || 'Unknown'}
               </h3>
               {contact.email && (
@@ -52,13 +65,13 @@ export function ContactCard({ contact, onEdit, onDelete }: ContactCardProps) {
               )}
             </div>
           </div>
-          {/* Enhanced tier badge */}
-          <span className={`px-3 py-1.5 rounded-full text-xs font-bold shadow-md transition-all duration-300 group-hover:scale-105 group-hover:shadow-lg ${
-            contact.tier === 'tier1' ? 'bg-gradient-to-r from-pink-500 to-pink-600 text-white group-hover:shadow-pink-500/25' :
-            contact.tier === 'tier2' ? 'bg-gradient-to-r from-yellow-500 to-yellow-600 text-white group-hover:shadow-yellow-500/25' :
-            'bg-gradient-to-r from-green-500 to-green-600 text-white group-hover:shadow-green-500/25'
+          {/* Enhanced tier badge with bounce animation */}
+          <span className={`px-3 py-1.5 rounded-full text-xs font-bold shadow-md transition-all duration-500 group-hover:scale-110 group-hover:animate-bounce group-hover:shadow-xl ${
+            contact.tier === 'tier1' ? 'bg-gradient-to-r from-pink-500 to-pink-600 text-white group-hover:shadow-pink-500/30' :
+            contact.tier === 'tier2' ? 'bg-gradient-to-r from-yellow-500 to-yellow-600 text-white group-hover:shadow-yellow-500/30' :
+            'bg-gradient-to-r from-green-500 to-green-600 text-white group-hover:shadow-green-500/30'
           }`}>
-            {contact.tier === 'tier1' ? 'TIER 1' : contact.tier === 'tier2' ? 'TIER 2' : 'TIER 3'}
+            TIER {contact.tier.slice(-1)}
           </span>
         </div>
         {/* Enhanced contact details with icons */}

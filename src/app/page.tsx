@@ -78,7 +78,62 @@ function GlobalContactProvider({ children }: { children: React.ReactNode }) {
   return <GlobalContactContext.Provider value={value}>{children}</GlobalContactContext.Provider>;
 }
 
-function ContactGrid({ contacts, onEdit, onDelete }: { contacts: Contact[], onEdit: (c: Contact) => void, onDelete: (id: string) => void }) {
+// Counting animation component
+const CountingNumber: React.FC<{ end: number; duration?: number }> = ({ end, duration = 1000 }) => {
+  const [count, setCount] = useState(0);
+  useEffect(() => {
+    let startTime: number | undefined;
+    const animate = (currentTime: number) => {
+      if (startTime === undefined) startTime = currentTime;
+      const progress = Math.min((currentTime - startTime) / duration, 1);
+      setCount(Math.floor(progress * end));
+      if (progress < 1) requestAnimationFrame(animate);
+    };
+    requestAnimationFrame(animate);
+  }, [end, duration]);
+  return <span>{count.toLocaleString()}</span>;
+};
+
+// AnalyticsCard with premium effects
+interface AnalyticsCardProps {
+  icon: React.ElementType;
+  count: number;
+  label: string;
+  gradient: string;
+  delay?: number;
+}
+const AnalyticsCard: React.FC<AnalyticsCardProps> = ({ icon: Icon, count, label, gradient, delay = 0 }) => (
+  <div 
+    className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm hover:shadow-xl transition-all duration-500 hover:-translate-y-1 border border-gray-100 dark:border-gray-700 group cursor-pointer"
+    style={{ animationDelay: `${delay}ms` }}
+  >
+    <div className="flex items-center">
+      <div className="flex-shrink-0">
+        <div className={`w-12 h-12 bg-gradient-to-r ${gradient} rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 group-hover:rotate-3 transition-all duration-300 group-hover:shadow-xl`}>
+          <Icon className="w-6 h-6 text-white" />
+        </div>
+      </div>
+      <div className="ml-4 flex-1">
+        <div className="text-3xl font-bold text-gray-900 dark:text-white transition-all duration-300 group-hover:scale-105">
+          <CountingNumber end={count} duration={1000} />
+        </div>
+        <div className="text-sm text-gray-500 dark:text-gray-400 font-medium">
+          {label}
+        </div>
+      </div>
+      {/* Animated chevron */}
+      <ChevronRight className="w-5 h-5 text-gray-400 opacity-0 group-hover:opacity-100 transform translate-x-0 group-hover:translate-x-1 transition-all duration-300" />
+    </div>
+    {/* Progress bar animation */}
+    <div className="mt-4 bg-gray-100 dark:bg-gray-700 rounded-full h-1 overflow-hidden">
+      <div 
+        className={`h-full bg-gradient-to-r ${gradient} transform scale-x-0 group-hover:scale-x-100 transition-transform duration-1000 origin-left`}
+      />
+    </div>
+  </div>
+);
+
+function ContactGrid({ contacts, onEdit, onDelete }: { contacts: Contact[], onEdit: (c: Contact) => void, onDelete: (c: Contact) => void }) {
   if (!contacts || contacts.length === 0) {
     return (
       <div className="text-center py-12">
@@ -87,14 +142,19 @@ function ContactGrid({ contacts, onEdit, onDelete }: { contacts: Contact[], onEd
     );
   }
   return (
-    <div className="auto-fit-grid">
-      {contacts.map((contact) => (
-        <ContactCard
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-8">
+      {contacts.map((contact, index) => (
+        <div
           key={contact.id}
-          contact={contact}
-          onEdit={onEdit}
-          onDelete={() => onDelete(contact.id)}
-        />
+          className="animate-slideInUp opacity-0"
+          style={{ animationDelay: `${index * 100}ms`, animationFillMode: 'forwards' }}
+        >
+          <ContactCard
+            contact={contact}
+            onEdit={onEdit}
+            onDelete={onDelete}
+          />
+        </div>
       ))}
     </div>
   );
@@ -110,58 +170,10 @@ const PremiumHeader = ({ contacts }: { contacts: Contact[] }) => {
     <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-900 border-b border-gray-200 dark:border-gray-700">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow duration-300 border border-gray-100 dark:border-gray-700">
-            <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg flex items-center justify-center">
-                  <Users className="w-5 h-5 text-white" />
-                </div>
-              </div>
-              <div className="ml-4">
-                <div className="text-2xl font-bold text-gray-900 dark:text-white">{contacts.length}</div>
-                <div className="text-sm text-gray-500 dark:text-gray-400">Total Contacts</div>
-              </div>
-            </div>
-          </div>
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow duration-300 border border-gray-100 dark:border-gray-700">
-            <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <div className="w-10 h-10 bg-gradient-to-r from-pink-500 to-pink-600 rounded-lg flex items-center justify-center">
-                  <Star className="w-5 h-5 text-white" />
-                </div>
-              </div>
-              <div className="ml-4">
-                <div className="text-2xl font-bold text-gray-900 dark:text-white">{tier1Count}</div>
-                <div className="text-sm text-gray-500 dark:text-gray-400">Tier 1 Contacts</div>
-              </div>
-            </div>
-          </div>
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow duration-300 border border-gray-100 dark:border-gray-700">
-            <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <div className="w-10 h-10 bg-gradient-to-r from-yellow-500 to-yellow-600 rounded-lg flex items-center justify-center">
-                  <Target className="w-5 h-5 text-white" />
-                </div>
-              </div>
-              <div className="ml-4">
-                <div className="text-2xl font-bold text-gray-900 dark:text-white">{tier2Count}</div>
-                <div className="text-sm text-gray-500 dark:text-gray-400">Tier 2 Contacts</div>
-              </div>
-            </div>
-          </div>
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow duration-300 border border-gray-100 dark:border-gray-700">
-            <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <div className="w-10 h-10 bg-gradient-to-r from-green-500 to-green-600 rounded-lg flex items-center justify-center">
-                  <Network className="w-5 h-5 text-white" />
-                </div>
-              </div>
-              <div className="ml-4">
-                <div className="text-2xl font-bold text-gray-900 dark:text-white">{tier3Count}</div>
-                <div className="text-sm text-gray-500 dark:text-gray-400">Tier 3 Contacts</div>
-              </div>
-            </div>
-          </div>
+          <AnalyticsCard icon={Users} count={contacts.length} label="Total Contacts" gradient="from-blue-500 to-blue-600" delay={0} />
+          <AnalyticsCard icon={Star} count={tier1Count} label="Tier 1 Contacts" gradient="from-pink-500 to-pink-600" delay={100} />
+          <AnalyticsCard icon={Target} count={tier2Count} label="Tier 2 Contacts" gradient="from-yellow-500 to-yellow-600" delay={200} />
+          <AnalyticsCard icon={Network} count={tier3Count} label="Tier 3 Contacts" gradient="from-green-500 to-green-600" delay={300} />
         </div>
       </div>
     </div>
@@ -682,7 +694,11 @@ export default function Home() {
                   <ContactGridSkeleton />
                 ) : (
                   <>
-                    <ContactGrid contacts={currentContacts} onEdit={handleEditContact} onDelete={handleDeleteContact} />
+                    <ContactGrid
+                      contacts={currentContacts}
+                      onEdit={handleEditContact}
+                      onDelete={(contact) => handleDeleteContact(contact.id)}
+                    />
                     <PaginationControls />
                   </>
                 )}
