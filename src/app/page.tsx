@@ -33,6 +33,7 @@ import type { GlobalContactState } from '@/lib/types';
 import { calculateGlobalAnalytics, applyGlobalFilters, paginateResults } from '@/lib/utils';
 import { loadAllContacts } from '@/lib/importExport';
 import HeaderAnalytics from '@/components/HeaderAnalytics';
+import debounce from 'lodash/debounce';
 
 // --- GLOBAL CONTACT CONTEXT ---
 const GlobalContactContext = createContext<GlobalContactState | undefined>(undefined);
@@ -311,60 +312,63 @@ export default function Home() {
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 30;
-
-  // Calculate pagination
   const totalPages = Math.ceil(filteredContacts.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
-  const currentContacts = filteredContacts.slice(startIndex, endIndex);
+  const paginatedContacts = filteredContacts.slice(startIndex, endIndex);
 
-  // Reset to page 1 when filters/search change
+  // Reset to page 1 when search or filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [activeFilters, contacts]);
+  }, [searchQuery, activeFilters]);
 
-  // Filter contacts by search query (name/email) before applying other filters
-  useEffect(() => {
-    if (!searchQuery) {
-      setFilteredContacts(contacts);
-    } else {
-      setFilteredContacts(
-        contacts.filter(contact =>
-          contact.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          contact.email?.toLowerCase().includes(searchQuery.toLowerCase())
-        )
+  // Debounced search to reduce filtering frequency
+  const debouncedSearch = useCallback(
+    debounce((query: string) => {
+      if (!query.trim()) {
+        setFilteredContacts(contacts);
+        return;
+      }
+      const filtered = contacts.filter(contact =>
+        contact.name?.toLowerCase().includes(query.toLowerCase()) ||
+        contact.email?.toLowerCase().includes(query.toLowerCase()) ||
+        contact.notes?.toLowerCase().includes(query.toLowerCase())
       );
-    }
-  }, [searchQuery, contacts]);
+      setFilteredContacts(filtered);
+    }, 300),
+    [contacts]
+  );
+
+  // Update search handler
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value);
+    debouncedSearch(e.target.value);
+  };
 
   // Pagination controls component
   const PaginationControls = () => (
-    <div className="flex items-center justify-between px-6 py-4 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 rounded-b-xl shadow-sm">
-      <div className="flex items-center text-sm text-gray-700 dark:text-gray-300">
-        Showing {filteredContacts.length === 0 ? 0 : startIndex + 1} to {Math.min(endIndex, filteredContacts.length)} of {filteredContacts.length} contacts
+    <div className="flex items-center justify-between px-6 py-4 bg-gray-800 border-t border-gray-700">
+      <div className="text-sm text-gray-400">
+        Showing {startIndex + 1} to {Math.min(endIndex, filteredContacts.length)} of {filteredContacts.length} contacts
       </div>
-      <div className="flex items-center space-x-2">
-        <Button
-          variant="outline"
-          size="sm"
+      <div className="flex items-center space-x-4">
+        <button
           onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
           disabled={currentPage <= 1}
+          className="px-4 py-2 bg-gray-700 text-white rounded hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          <ChevronLeft className="w-4 h-4" />
           Previous
-        </Button>
-        <span className="text-sm text-gray-700 dark:text-gray-300">
-          Page {totalPages === 0 ? 0 : currentPage} of {totalPages}
+        </button>
+        <span className="text-gray-400">
+          Page {currentPage} of {totalPages}
         </span>
-        <Button
-          variant="outline"
-          size="sm"
+        <button
           onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
           disabled={currentPage >= totalPages}
+          className="px-4 py-2 bg-gray-700 text-white rounded hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           Next
-          <ChevronRight className="w-4 h-4" />
-        </Button>
+        </button>
       </div>
     </div>
   );
@@ -808,12 +812,12 @@ export default function Home() {
         <main className="max-w-[95%] mx-auto px-2 sm:px-4 lg:px-6 py-8">
           <div className="space-y-8">
             {/* Search and Filters */}
-            <AdvancedSearch
+            {/* <AdvancedSearch
               contacts={contacts}
               onFilterChange={handleFilterChange}
               activeFilters={activeFilters}
               onActiveFiltersChange={setActiveFilters}
-            />
+            /> */}
 
             {/* Contact Display - RESTORED */}
             {viewMode === 'grid' && (
@@ -822,16 +826,19 @@ export default function Home() {
                   <div className="text-gray-400">Loading contacts...</div>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-8">
-                  {visibleContacts.map((contact, index) => (
-                    <ContactCard
-                      key={contact.id}
-                      contact={contact}
-                      onEdit={handleEditContact}
-                      onDelete={() => handleDeleteContact(contact.id)}
-                    />
-                  ))}
-                </div>
+                <>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-8 px-6 py-6">
+                    {paginatedContacts.map((contact, index) => (
+                      <ContactCard
+                        key={contact.id}
+                        contact={contact}
+                        onEdit={handleEditContact}
+                        onDelete={() => handleDeleteContact(contact.id)}
+                      />
+                    ))}
+                  </div>
+                  <PaginationControls />
+                </>
               )
             )}
 
