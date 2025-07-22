@@ -87,14 +87,22 @@ function ContactGrid({ contacts, onEdit, onDelete }: { contacts: Contact[], onEd
     );
   }
   return (
-    <div className="auto-fit-grid">
-      {contacts.map((contact) => (
-        <ContactCard
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-8">
+      {contacts.map((contact, index) => (
+        <div
           key={contact.id}
-          contact={contact}
-          onEdit={onEdit}
-          onDelete={() => onDelete(contact.id)}
-        />
+          className="animate-slideInUp opacity-0"
+          style={{ 
+            animationDelay: `${index * 100}ms`,
+            animationFillMode: 'forwards'
+          }}
+        >
+          <ContactCard
+            contact={contact}
+            onEdit={onEdit}
+            onDelete={() => onDelete(contact.id)}
+          />
+        </div>
       ))}
     </div>
   );
@@ -181,6 +189,99 @@ const PremiumHeader: React.FC<PremiumHeaderProps> = ({ contacts }) => {
   );
 };
 
+// Enhanced search with suggestions and animations
+interface PremiumSearchBarProps {
+  searchQuery: string;
+  setSearchQuery: (q: string) => void;
+  contacts: Contact[];
+}
+const PremiumSearchBar: React.FC<PremiumSearchBarProps> = ({ searchQuery, setSearchQuery, contacts }) => {
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [suggestions, setSuggestions] = useState<Contact[]>([]);
+
+  const generateSuggestions = useCallback((query: string) => {
+    if (!query.trim()) return [];
+    const filtered = contacts
+      .filter(contact => 
+        contact.name.toLowerCase().includes(query.toLowerCase()) ||
+        contact.email?.toLowerCase().includes(query.toLowerCase())
+      )
+      .slice(0, 5);
+    return filtered;
+  }, [contacts]);
+
+  useEffect(() => {
+    const newSuggestions = generateSuggestions(searchQuery);
+    setSuggestions(newSuggestions);
+    setShowSuggestions(searchQuery.length > 0 && newSuggestions.length > 0);
+  }, [searchQuery, generateSuggestions]);
+
+  return (
+    <div className="relative">
+      <div className="relative group">
+        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+          <Search className="h-5 w-5 text-gray-400 group-focus-within:text-blue-500 group-focus-within:scale-110 transition-all duration-300" />
+        </div>
+        <input
+          type="text"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder={`Search across all ${contacts.length} contacts...`}
+          className="block w-full pl-12 pr-12 py-4 bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 rounded-2xl text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 transition-all duration-300 shadow-sm hover:shadow-lg focus:shadow-xl group-hover:border-gray-300"
+        />
+        {/* Enhanced clear button */}
+        {searchQuery && (
+          <button
+            onClick={() => setSearchQuery('')}
+            className="absolute inset-y-0 right-0 pr-4 flex items-center group/clear"
+          >
+            <div className="p-1.5 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200">
+              <X className="h-4 w-4 text-gray-400 group-hover/clear:text-gray-600 transition-colors duration-200" />
+            </div>
+          </button>
+        )}
+      </div>
+      {/* Live suggestions dropdown */}
+      {showSuggestions && (
+        <div className="absolute top-full mt-2 left-0 right-0 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-xl z-50 overflow-hidden animate-slideDown">
+          <div className="p-2">
+            <div className="text-xs text-gray-500 dark:text-gray-400 px-3 py-2 font-medium">
+              Quick Results ({suggestions.length})
+            </div>
+            {suggestions.map((contact, index) => (
+              <button
+                key={contact.id}
+                onClick={() => {
+                  setSearchQuery(contact.name);
+                  setShowSuggestions(false);
+                }}
+                className="w-full flex items-center space-x-3 px-3 py-2 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors duration-200"
+                style={{ animationDelay: `${index * 50}ms` }}
+              >
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold ${
+                  contact.tier === 'tier1' ? 'bg-pink-500' :
+                  contact.tier === 'tier2' ? 'bg-yellow-500' :
+                  'bg-green-500'
+                }`}>
+                  {contact.name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                </div>
+                <div className="flex-1 text-left">
+                  <div className="text-sm font-medium text-gray-900 dark:text-white">
+                    {contact.name}
+                  </div>
+                  <div className="text-xs text-gray-500 dark:text-gray-400">
+                    {contact.email}
+                  </div>
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
 export default function Home() {
   const { user, logout } = useAuth()
   const { toggleTheme } = useTheme();
@@ -205,6 +306,7 @@ export default function Home() {
     location: 'all',
     interests: []
   })
+  const [searchQuery, setSearchQuery] = useState('');
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -220,6 +322,20 @@ export default function Home() {
   useEffect(() => {
     setCurrentPage(1);
   }, [activeFilters, contacts]);
+
+  // Filter contacts by search query (name/email) before applying other filters
+  useEffect(() => {
+    if (!searchQuery) {
+      setFilteredContacts(contacts);
+    } else {
+      setFilteredContacts(
+        contacts.filter(contact =>
+          contact.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          contact.email?.toLowerCase().includes(searchQuery.toLowerCase())
+        )
+      );
+    }
+  }, [searchQuery, contacts]);
 
   // Pagination controls component
   const PaginationControls = () => (
@@ -659,6 +775,10 @@ export default function Home() {
         </header>
           {/* Premium Analytics Header */}
           <PremiumHeader contacts={contacts} />
+          {/* Enhanced Premium Search Bar */}
+          <div className="max-w-2xl mx-auto mt-8 mb-4">
+            <PremiumSearchBar searchQuery={searchQuery} setSearchQuery={setSearchQuery} contacts={contacts} />
+          </div>
           {/* Remove or comment out the old analytics bar and HeaderAnalytics usage */}
           {/* <div className="glass-card border-b border-gray-200/50 dark:border-gray-700/50 transition-colors duration-300">
             <div className="max-w-[95%] mx-auto px-2 sm:px-4 lg:px-6 py-6">
@@ -681,6 +801,7 @@ export default function Home() {
         <main className="max-w-[95%] mx-auto px-2 sm:px-4 lg:px-6 py-8">
           <div className="space-y-8">
             {/* Search and Filters */}
+            {/* <AdvancedSearch ... /> */}
             <AdvancedSearch
               contacts={contacts}
               onFilterChange={handleFilterChange}
