@@ -160,7 +160,11 @@ export function NetworkVisualization({
       .enter()
       .append('g')
       .attr('class', 'node')
-      .call(d3.drag() as any)
+      .call(d3.drag<SVGCircleElement, NodeData>()
+        .on('start', dragstarted)
+        .on('drag', dragged)
+        .on('end', dragended)
+      )
 
     // Add circles to nodes
     node.append('circle')
@@ -204,34 +208,34 @@ export function NetworkVisualization({
     // Update positions on simulation tick
     simulation.on('tick', () => {
       link
-        .attr('x1', d => (d.source as any).x)
-        .attr('y1', d => (d.source as any).y)
-        .attr('x2', d => (d.target as any).x)
-        .attr('y2', d => (d.target as any).y)
+        .attr('x1', d => (d.source as NodeData).x)
+        .attr('y1', d => (d.source as NodeData).y)
+        .attr('x2', d => (d.target as NodeData).x)
+        .attr('y2', d => (d.target as NodeData).y)
 
       node.attr('transform', d => `translate(${d.x},${d.y})`)
     })
 
     // Drag functions
-    function dragstarted(this: any, event: any, d: any) {
+    function dragstarted(this: SVGCircleElement, event: d3.D3DragEvent<SVGCircleElement, NodeData, NodeData>, d: NodeData) {
       if (!event.active) simulation.alphaTarget(0.3).restart()
       d.fx = d.x
       d.fy = d.y
     }
 
-    function dragged(this: any, event: any, d: any) {
+    function dragged(this: SVGCircleElement, event: d3.D3DragEvent<SVGCircleElement, NodeData, NodeData>, d: NodeData) {
       d.fx = event.x
       d.fy = event.y
     }
 
-    function dragended(this: any, event: any, d: any) {
+    function dragended(this: SVGCircleElement, event: d3.D3DragEvent<SVGCircleElement, NodeData, NodeData>, d: NodeData) {
       if (!event.active) simulation.alphaTarget(0)
       d.fx = null
       d.fy = null
     }
 
     // Tooltip functions
-    function showTooltip(event: any, d: NodeData) {
+    function showTooltip(event: d3.D3PointerEvent<SVGCircleElement, NodeData>, d: NodeData) {
       const tooltip = d3.select('body').append('div')
         .attr('class', 'network-tooltip')
         .style('position', 'absolute')

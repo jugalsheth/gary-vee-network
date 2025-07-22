@@ -52,7 +52,6 @@ export function exportContactsToCSV(contacts: Contact[]): void {
     notes: contact.notes,
     createdAt: formatDateForCSV(contact.createdAt),
     updatedAt: formatDateForCSV(contact.updatedAt),
-    addedBy: contact.addedBy
   }))
 
   const csv = Papa.unparse(csvData)
@@ -74,7 +73,7 @@ export function exportContactsToCSV(contacts: Contact[]): void {
 }
 
 // Parse CSV file
-export function parseCSVFile(file: File): Promise<{ data: any[], headers: string[] }> {
+export function parseCSVFile(file: File): Promise<{ data: Record<string, string>[], headers: string[] }> {
   return new Promise((resolve, reject) => {
     Papa.parse(file, {
       header: true,
@@ -84,7 +83,7 @@ export function parseCSVFile(file: File): Promise<{ data: any[], headers: string
           reject(new Error(`CSV parsing errors: ${results.errors.map(e => e.message).join(', ')}`))
         } else {
           resolve({
-            data: results.data,
+            data: results.data as Record<string, string>[],
             headers: results.meta.fields || []
           })
         }
@@ -97,8 +96,12 @@ export function parseCSVFile(file: File): Promise<{ data: any[], headers: string
 }
 
 // Validate contact data
-export function validateContactData(data: any, row: number): ImportError[] {
+export function validateContactData(data: Record<string, string>, row: number): ImportError[] {
   const errors: ImportError[] = []
+
+  // Preprocess boolean fields
+  const hasKidsVal = parseBoolean(data.hasKids)
+  const isMarriedVal = parseBoolean(data.isMarried)
 
   // Required fields
   if (!data.name || data.name.trim() === '') {
@@ -121,20 +124,20 @@ export function validateContactData(data: any, row: number): ImportError[] {
     }
   }
 
-  // Boolean field validation
-  if (data.hasKids && !['Yes', 'No', 'true', 'false', '1', '0'].includes(data.hasKids)) {
-    errors.push({ row, field: 'hasKids', message: 'Has Kids must be Yes/No, true/false, or 1/0', value: data.hasKids })
+  // Boolean field validation (accepts Yes/No, true/false, 1/0, y/n)
+  if (data.hasKids !== undefined && typeof hasKidsVal !== 'boolean') {
+    errors.push({ row, field: 'hasKids', message: 'Has Kids must be Yes/No, true/false, 1/0, or y/n', value: data.hasKids })
   }
 
-  if (data.isMarried && !['Yes', 'No', 'true', 'false', '1', '0'].includes(data.isMarried)) {
-    errors.push({ row, field: 'isMarried', message: 'Is Married must be Yes/No, true/false, or 1/0', value: data.isMarried })
+  if (data.isMarried !== undefined && typeof isMarriedVal !== 'boolean') {
+    errors.push({ row, field: 'isMarried', message: 'Is Married must be Yes/No, true/false, 1/0, or y/n', value: data.isMarried })
   }
 
   return errors
 }
 
 // Convert CSV data to Contact objects
-export function convertCSVToContacts(data: any[], fieldMapping: FieldMapping): Partial<Contact>[] {
+export function convertCSVToContacts(data: Record<string, string>[], fieldMapping: FieldMapping): Partial<Contact>[] {
   return data.map(row => {
     const contact: Partial<Contact> = {
       name: row[fieldMapping.name]?.trim() || '',
@@ -149,22 +152,20 @@ export function convertCSVToContacts(data: any[], fieldMapping: FieldMapping): P
       notes: row[fieldMapping.notes]?.trim() || '',
       createdAt: new Date(),
       updatedAt: new Date(),
-      addedBy: 'import'
     }
-
     return contact
   })
 }
 
 // Parse boolean values from various formats
-function parseBoolean(value: any): boolean {
+function parseBoolean(value: string | undefined): boolean {
   if (!value) return false
   const str = String(value).toLowerCase().trim()
   return ['yes', 'true', '1', 'y'].includes(str)
 }
 
 // Parse interests from semicolon-separated string
-function parseInterests(value: any): string[] {
+function parseInterests(value: string | undefined): string[] {
   if (!value) return []
   const str = String(value).trim()
   return str.split(';').map(interest => interest.trim()).filter(Boolean)
@@ -240,4 +241,13 @@ export function autoDetectFieldMapping(headers: string[]): FieldMapping {
   })
 
   return mapping
+} 
+
+// --- GLOBAL CONTACT LOADING ---
+// import type { Contact } from './types'; // Already imported at top if present
+
+export async function loadAllContacts(): Promise<Contact[]> {
+  // Replace with actual API call or data source
+  // Example: fetch('/api/contacts').then(res => res.json())
+  return [];
 } 

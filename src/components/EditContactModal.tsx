@@ -35,7 +35,7 @@ export interface EditContactModalProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   contact: Contact | null
-  onUpdate: (contact: Contact) => void
+  onUpdate: (contactId: string, updates: Partial<Contact>) => void
 }
 
 export function EditContactModal({ open, onOpenChange, contact, onUpdate }: EditContactModalProps) {
@@ -74,13 +74,21 @@ export function EditContactModal({ open, onOpenChange, contact, onUpdate }: Edit
     }
   }, [contact, form])
 
+  React.useEffect(() => {
+    console.log('EditContactModal received contact:', contact);
+    console.log('Contact ID:', contact?.id);
+  }, [contact]);
+
   const handleClose = () => {
     onOpenChange(false)
     form.reset()
   }
 
   const onSubmit = (values: ContactFormValues) => {
-    if (!contact) return
+    if (!contact || !contact.id) {
+      console.error('Contact or Contact ID is missing');
+      return;
+    }
 
     const updatedContact: Contact = {
       ...contact,
@@ -97,7 +105,21 @@ export function EditContactModal({ open, onOpenChange, contact, onUpdate }: Edit
       updatedAt: new Date(),
     }
 
-    onUpdate(updatedContact)
+    // CRITICAL: Pass contact.id and only the updated fields
+    const updateFields = {
+      name: values.name,
+      email: values.email || undefined,
+      phone: values.phone || undefined,
+      tier: values.tier,
+      relationshipToGary: values.relationshipToGary,
+      location: values.location || undefined,
+      hasKids: values.hasKids,
+      isMarried: values.isMarried,
+      interests: values.interests ? values.interests.split(',').map(i => i.trim()).filter(Boolean) : [],
+      notes: values.notes,
+      updatedAt: new Date(),
+    };
+    onUpdate(contact.id, updateFields);
     handleClose()
   }
 
@@ -359,7 +381,7 @@ export function EditContactModal({ open, onOpenChange, contact, onUpdate }: Edit
               <div className="text-sm text-gray-600 dark:text-gray-400 transition-colors duration-300">
                 <p>Created: {new Date(contact.createdAt).toLocaleDateString()}</p>
                 <p>Last updated: {new Date(contact.updatedAt).toLocaleDateString()}</p>
-                <p>Added by: {contact.addedBy}</p>
+                <p>Added by: {contact.createdBy}</p>
               </div>
             </div>
 

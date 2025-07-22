@@ -13,13 +13,13 @@ export interface DeleteConfirmationModalProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   contact: Contact | null
-  onConfirm: (contactId: string) => void
+  onConfirm: (contact: Contact) => void
 }
 
 export function DeleteConfirmationModal({ open, onOpenChange, contact, onConfirm }: DeleteConfirmationModalProps) {
   const handleConfirm = () => {
     if (contact) {
-      onConfirm(contact.id)
+      onConfirm(contact)
       onOpenChange(false)
     }
   }

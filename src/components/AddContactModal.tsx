@@ -9,10 +9,10 @@ import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
 import { z } from 'zod'
 import { useForm } from 'react-hook-form'
+// @ts-ignore: No type definitions for '@hookform/resolvers/zod'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { TIER_COLORS } from '@/lib/constants'
 import type { Tier, Contact } from '@/lib/types'
-import { saveContacts, getContacts } from '@/lib/storage'
 import { Plus, Camera, FileText } from 'lucide-react'
 import { ImageUpload } from './ImageUpload'
 import { ExtractedDataPreview } from './ExtractedDataPreview'
@@ -25,16 +25,25 @@ import type { ExtractedData } from '@/lib/ocr'
 import { generateUniqueId } from '@/lib/utils'
 
 const ContactSchema = z.object({
+  contactType: z.enum(['business', 'influencer', 'general']),
   name: z.string().min(1, 'Name is required'),
   email: z.string().email('Invalid email').optional().or(z.literal('')),
   phone: z.string().optional(),
   tier: z.enum(['tier1', 'tier2', 'tier3']),
-  relationshipToGary: z.string().min(1, 'Relationship is required'),
+  relationshipToGary: z.string().optional(),
   location: z.string().optional(),
-  hasKids: z.boolean(), // not optional
-  isMarried: z.boolean(), // not optional
+  city: z.string().optional(),
+  state: z.string().optional(),
+  country: z.string().optional(),
+  hasKids: z.boolean().optional(),
+  isMarried: z.boolean().optional(),
   interests: z.string().optional(),
   notes: z.string().min(1, 'Notes are required'),
+  // Influencer fields
+  instagram: z.string().optional(),
+  instagramLink: z.string().optional(),
+  followerCount: z.coerce.number().optional(),
+  biography: z.string().optional(),
 })
 
 type ContactFormValues = z.infer<typeof ContactSchema>
@@ -56,16 +65,24 @@ export function AddContactModal({ open, onOpenChange, onAdd }: AddContactModalPr
   const form = useForm<ContactFormValues>({
     resolver: zodResolver(ContactSchema),
     defaultValues: {
+      contactType: 'business',
       name: '',
       email: '',
       phone: '',
       tier: 'tier3',
       relationshipToGary: '',
       location: '',
+      city: '',
+      state: '',
+      country: '',
       hasKids: false,
       isMarried: false,
       interests: '',
       notes: '',
+      instagram: '',
+      instagramLink: '',
+      followerCount: undefined,
+      biography: '',
     },
     mode: 'onChange',
   })
@@ -117,22 +134,34 @@ export function AddContactModal({ open, onOpenChange, onAdd }: AddContactModalPr
         name: values.name,
         email: values.email || undefined,
         phone: values.phone || undefined,
+        contactType: values.contactType,
         tier: values.tier,
-        relationshipToGary: values.relationshipToGary,
+        city: values.city || undefined,
+        state: values.state || undefined,
+        country: values.country || undefined,
         location: values.location || undefined,
-        hasKids: values.hasKids,
-        isMarried: values.isMarried,
+        instagram: values.instagram || undefined,
+        instagramLink: values.instagramLink || undefined,
+        followerCount: values.followerCount || undefined,
+        biography: values.biography || undefined,
+        relationshipToGary: values.relationshipToGary || undefined,
+        hasKids: values.hasKids ?? false,
+        isMarried: values.isMarried ?? false,
         interests: values.interests ? values.interests.split(',').map(i => i.trim()).filter(Boolean) : [],
         notes: values.notes,
-        socialHandles: {},
         connections: [],
+        voiceNotes: [],
         createdAt: new Date(),
         updatedAt: new Date(),
-        addedBy: 'gary',
+        createdBy: 'gary',
+        team: 'TeamG',
       }
       
-      const contacts = getContacts()
-      saveContacts([newContact, ...contacts])
+      await fetch('/api/contacts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newContact)
+      });
       onAdd(newContact)
       
       // Show success state
@@ -236,6 +265,24 @@ export function AddContactModal({ open, onOpenChange, onAdd }: AddContactModalPr
           {(entryMode === 'manual' || showDataPreview) && (
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                {/* Contact Type Selector */}
+                <FormField control={form.control} name="contactType" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Contact Type *</FormLabel>
+                    <FormControl>
+                      <Select value={field.value} onValueChange={field.onChange}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="business">Business</SelectItem>
+                          <SelectItem value="influencer">Influencer</SelectItem>
+                          <SelectItem value="general">General</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </FormControl>
+                  </FormItem>
+                )} />
               <FormField control={form.control} name="name" render={({ field }) => (
                 <FormItem>
                   <FormLabel>Name *</FormLabel>
@@ -294,15 +341,43 @@ export function AddContactModal({ open, onOpenChange, onAdd }: AddContactModalPr
                   </FormControl>
                 </FormItem>
               )} />
-              <FormField control={form.control} name="relationshipToGary" render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Relationship to Gary *</FormLabel>
-                  <FormControl>
-                    <Input {...field} placeholder="e.g. Business Partner" />
-                  </FormControl>
-                  {form.formState.errors.relationshipToGary && <span className="text-red-500 dark:text-red-400 text-xs transition-colors duration-300">{form.formState.errors.relationshipToGary.message}</span>}
-                </FormItem>
-              )} />
+                {/* Influencer-specific fields */}
+                {form.watch('contactType') === 'influencer' && (
+                  <>
+                    <FormField control={form.control} name="instagram" render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Instagram Handle</FormLabel>
+                        <FormControl>
+                          <Input {...field} placeholder="@username" />
+                        </FormControl>
+                      </FormItem>
+                    )} />
+                    <FormField control={form.control} name="instagramLink" render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Instagram Link</FormLabel>
+                        <FormControl>
+                          <Input {...field} placeholder="https://instagram.com/username" />
+                        </FormControl>
+                      </FormItem>
+                    )} />
+                    <FormField control={form.control} name="followerCount" render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Follower Count</FormLabel>
+                        <FormControl>
+                          <Input {...field} placeholder="e.g. 1000000" type="number" />
+                        </FormControl>
+                      </FormItem>
+                    )} />
+                    <FormField control={form.control} name="biography" render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Biography</FormLabel>
+                        <FormControl>
+                          <Textarea {...field} placeholder="Short bio or description" rows={2} />
+                        </FormControl>
+                      </FormItem>
+                    )} />
+                  </>
+                )}
               <FormField control={form.control} name="location" render={({ field }) => (
                 <FormItem>
                   <FormLabel>Location</FormLabel>
@@ -311,24 +386,38 @@ export function AddContactModal({ open, onOpenChange, onAdd }: AddContactModalPr
                   </FormControl>
                 </FormItem>
               )} />
-              <div className="flex gap-4">
-                <FormField control={form.control} name="hasKids" render={({ field }) => (
-                  <FormItem className="flex flex-row items-center gap-2">
-                    <FormControl>
-                      <input type="checkbox" checked={field.value} onChange={e => field.onChange(e.target.checked)} className="accent-pink-500 w-4 h-4" />
-                    </FormControl>
-                    <FormLabel className="mb-0">Has Kids</FormLabel>
-                  </FormItem>
-                )} />
-                <FormField control={form.control} name="isMarried" render={({ field }) => (
-                  <FormItem className="flex flex-row items-center gap-2">
-                    <FormControl>
-                      <input type="checkbox" checked={field.value} onChange={e => field.onChange(e.target.checked)} className="accent-pink-500 w-4 h-4" />
-                    </FormControl>
-                    <FormLabel className="mb-0">Is Married</FormLabel>
-                  </FormItem>
-                )} />
-              </div>
+                {/* Business-specific fields */}
+                {form.watch('contactType') === 'business' && (
+                  <>
+                    <FormField control={form.control} name="relationshipToGary" render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Relationship to Gary *</FormLabel>
+                        <FormControl>
+                          <Input {...field} placeholder="e.g. Business Partner" />
+                        </FormControl>
+                        {form.formState.errors.relationshipToGary && <span className="text-red-500 dark:text-red-400 text-xs transition-colors duration-300">{form.formState.errors.relationshipToGary.message}</span>}
+                      </FormItem>
+                    )} />
+                    <div className="flex gap-4">
+                      <FormField control={form.control} name="hasKids" render={({ field }) => (
+                        <FormItem className="flex flex-row items-center gap-2">
+                          <FormControl>
+                            <input type="checkbox" checked={field.value} onChange={e => field.onChange(e.target.checked)} className="accent-pink-500 w-4 h-4" />
+                          </FormControl>
+                          <FormLabel className="mb-0">Has Kids</FormLabel>
+                        </FormItem>
+                      )} />
+                      <FormField control={form.control} name="isMarried" render={({ field }) => (
+                        <FormItem className="flex flex-row items-center gap-2">
+                          <FormControl>
+                            <input type="checkbox" checked={field.value} onChange={e => field.onChange(e.target.checked)} className="accent-pink-500 w-4 h-4" />
+                          </FormControl>
+                          <FormLabel className="mb-0">Is Married</FormLabel>
+                        </FormItem>
+                      )} />
+                    </div>
+                  </>
+                )}
               <FormField control={form.control} name="interests" render={({ field }) => (
                 <FormItem>
                   <FormLabel>Interests</FormLabel>

@@ -25,22 +25,28 @@ const badgeVariants = cva(
   }
 )
 
-function Badge({
-  className,
-  variant,
-  asChild = false,
-  ...props
-}: React.ComponentProps<"span"> &
-  VariantProps<typeof badgeVariants> & { asChild?: boolean }) {
-  const Comp = asChild ? Slot : "span"
-
-  return (
-    <Comp
-      data-slot="badge"
-      className={cn(badgeVariants({ variant }), className)}
-      {...props}
-    />
-  )
+export interface BadgeProps extends React.HTMLAttributes<HTMLDivElement> {
+  variant?: 'default' | 'secondary' | 'destructive' | 'outline' | 'tier1' | 'tier2' | 'tier3'
 }
 
-export { Badge, badgeVariants }
+export const Badge = React.forwardRef<HTMLDivElement, BadgeProps>(
+  ({ className, variant = 'default', ...props }, ref) => {
+    let variantClass = ''
+    if (variant === 'tier1') variantClass = 'tier-gradient-1 text-white shadow-premium'
+    if (variant === 'tier2') variantClass = 'tier-gradient-2 text-white shadow-premium'
+    if (variant === 'tier3') variantClass = 'tier-gradient-3 text-white shadow-premium'
+    return (
+      <div
+        ref={ref}
+        className={cn(
+          'inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold transition-all duration-200',
+          'hover:scale-105 active:scale-95',
+          variantClass,
+          className
+        )}
+        {...props}
+      />
+    )
+  }
+)
+Badge.displayName = 'Badge'

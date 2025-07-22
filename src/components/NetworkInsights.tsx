@@ -281,6 +281,10 @@ export function NetworkInsights({
           </div>
         </CardContent>
       </Card>
+
+      {/* --- GLOBAL AI ANALYSIS PLACEHOLDER --- */}
+      {/* import { analyzeGlobalNetwork } from '../lib/ai'; */}
+      {/* Use analyzeGlobalNetwork(allContacts) for global AI insights */}
     </div>
   )
 } 

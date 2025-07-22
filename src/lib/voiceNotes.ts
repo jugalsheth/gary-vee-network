@@ -22,15 +22,33 @@ export interface RecordingState {
 // Web Speech API Types
 declare global {
   interface Window {
-    SpeechRecognition: any
-    webkitSpeechRecognition: any
+    SpeechRecognition: SpeechRecognition
+    webkitSpeechRecognition: SpeechRecognition
   }
+}
+
+// Web Speech API types for TypeScript
+interface SpeechRecognition extends EventTarget {
+  lang: string;
+  onresult: ((event: SpeechRecognitionEvent) => void) | null;
+  onerror: ((event: SpeechRecognitionErrorEvent) => void) | null;
+  start(): void;
+  stop(): void;
+  abort(): void;
+  [key: string]: unknown;
+}
+interface SpeechRecognitionEvent extends Event {
+  resultIndex: number;
+  results: SpeechRecognitionResultList;
+}
+interface SpeechRecognitionErrorEvent extends Event {
+  error: string;
 }
 
 // Voice Recording Class
 export class VoiceRecorder {
   private mediaRecorder: MediaRecorder | null = null
-  private recognition: any = null
+  private recognition: SpeechRecognition | null = null
   private audioContext: AudioContext | null = null
   private analyser: AnalyserNode | null = null
   private microphone: MediaStreamAudioSourceNode | null = null
@@ -151,12 +169,14 @@ export class VoiceRecorder {
       return
     }
 
-    this.recognition = new SpeechRecognition()
+    // Replace instantiation with a type-safe constructor cast
+    const SpeechRecognitionConstructor = (window.SpeechRecognition || window.webkitSpeechRecognition) as unknown as new () => SpeechRecognition;
+    this.recognition = new SpeechRecognitionConstructor();
     this.recognition.continuous = true
     this.recognition.interimResults = true
     this.recognition.lang = 'en-US'
 
-    this.recognition.onresult = (event: any) => {
+    this.recognition.onresult = (event: SpeechRecognitionEvent) => {
       let transcript = ''
       for (let i = event.resultIndex; i < event.results.length; i++) {
         transcript += event.results[i][0].transcript
@@ -165,7 +185,7 @@ export class VoiceRecorder {
       onTranscriptUpdate(transcript)
     }
 
-    this.recognition.onerror = (event: any) => {
+    this.recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
       console.error('Speech recognition error:', event.error)
     }
 
@@ -175,7 +195,7 @@ export class VoiceRecorder {
   // Monitor audio levels
   private monitorAudioLevel(onStateChange: (state: Partial<RecordingState>) => void): void {
     const updateLevel = () => {
-      if (!this.analyser || !this.dataArray || !this.isRecording) {
+      if (!this.analyser || !this.dataArray || this.mediaRecorder?.state !== 'recording') {
         return
       }
 
