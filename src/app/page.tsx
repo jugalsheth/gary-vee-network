@@ -20,7 +20,7 @@ import { NetworkInsights } from '@/components/NetworkInsights'
 import { VoiceNotesDemo } from '@/components/VoiceNotesDemo'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Plus, Upload, Users, Grid, List, Network, BarChart3, Mic, Edit2, Trash2, Phone, MapPin, ChevronLeft, ChevronRight, Star, Target } from 'lucide-react'
+import { Search, Phone, MapPin, Instagram, Edit2, Trash2, X, Users, Star, Target, Network, Plus, Upload, Grid, List, BarChart3, Mic, ChevronLeft, ChevronRight } from 'lucide-react'
 import { getTeamColor } from '@/lib/auth'
 import { exportContactsToCSV } from '@/lib/importExport'
 import { toast } from 'sonner';
