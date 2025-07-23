@@ -49,11 +49,27 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
     threshold: 0.3,
   });
 
+  // Centralized close handler
+  const handleClose = () => {
+    setOpen(false);
+    setQuery('');
+    setSelected(0);
+    console.log('🚪 Command palette closed and state reset');
+  };
+
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
         e.preventDefault();
-        setOpen((o) => !o);
+        setOpen((o) => {
+          const newOpen = !o;
+          if (!newOpen) {
+            setQuery('');
+            setSelected(0);
+            console.log('🔄 Cmd+K closed palette, state reset');
+          }
+          return newOpen;
+        });
         HapticFeedback.light();
       }
     };
@@ -90,7 +106,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
       HapticFeedback.medium();
       handleSelect(results[selected]);
     } else if (e.key === 'Escape') {
-      setOpen(false);
+      handleClose();
       HapticFeedback.notification();
     }
   };
@@ -112,14 +128,14 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
       setSelectedContact(item);
       setShowEditModal(true);
     }
-    setOpen(false);
-    setQuery('');
+    handleClose();
   };
 
-  if (!open) return null;
-
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+    <div
+      style={{ display: open ? 'flex' : 'none' }}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
+    >
       <div className="glass-premium shadow-premium rounded-xl w-full max-w-lg mx-auto p-4">
         <input
           ref={inputRef}
@@ -133,7 +149,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
         <ul className="max-h-72 overflow-y-auto divide-y divide-gray-200 dark:divide-gray-800">
           {results.map((item, i) => (
             <li
-              key={item.label || item.name || i}
+              key={isQuickAction(item) ? item.label : item.name || i}
               className={`p-3 cursor-pointer rounded-lg transition-all ${i === selected ? 'bg-blue-100 dark:bg-blue-900' : ''}`}
               onMouseEnter={() => setSelected(i)}
               onClick={() => handleSelect(item)}

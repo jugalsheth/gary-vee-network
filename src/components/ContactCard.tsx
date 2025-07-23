@@ -10,12 +10,20 @@ export interface ContactCardProps {
   onEdit?: (contact: Contact) => void
   onDelete?: (contact: Contact) => void
   onManageConnections?: (contact: Contact) => void
+  isHighlighted?: boolean;
+  id?: string;
 }
 
-const ContactCardComponent = ({ contact, onEdit, onDelete }: ContactCardProps) => {
+const ContactCardComponent = ({ contact, onEdit, onDelete, isHighlighted, id }: ContactCardProps) => {
   if (!contact || !contact.name || !contact.id) return null;
   return (
-    <div className="group relative bg-white dark:bg-gray-800 rounded-xl shadow-sm hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 hover:scale-[1.02] border border-gray-200 dark:border-gray-700 overflow-hidden" data-contact-id={contact.id}>
+    <div
+      id={id}
+      className={`group relative transition-all duration-500 ${
+        isHighlighted ? 'transform scale-105 ring-4 ring-blue-500/30 shadow-xl' : ''
+      }`}
+      data-contact-id={contact.id}
+    >
       {/* Enhanced tier indicator with pulse animation and shimmer */}
       <div className={`relative h-1.5 w-full bg-gradient-to-r transition-all duration-500 group-hover:h-3 ${
         contact.tier === 'tier1' ? 'from-pink-400 via-pink-500 to-pink-600 group-hover:shadow-lg group-hover:shadow-pink-500/50' :
@@ -168,7 +176,7 @@ const sampleContact: Contact = {
 export function ContactCardDemo() {
   return (
     <div className="max-w-md mx-auto p-4">
-      <ContactCard contact={sampleContact} />
+      <MemoizedContactCard contact={sampleContact} />
     </div>
   )
 } 

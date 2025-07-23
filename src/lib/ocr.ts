@@ -1,5 +1,3 @@
-import Tesseract from 'tesseract.js'
-
 export interface ExtractedData {
   name?: string
   email?: string
@@ -23,8 +21,8 @@ export async function extractTextFromImage(imageFile: File): Promise<OCRResult> 
   try {
     // Create a URL for the image file
     const imageUrl = URL.createObjectURL(imageFile)
-    
-    // Use Tesseract.js to extract text
+    // Use Tesseract.js to extract text (lazy load)
+    const { default: Tesseract } = await import('tesseract.js');
     const result = await Tesseract.recognize(
       imageUrl,
       'eng',

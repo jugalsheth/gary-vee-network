@@ -2,6 +2,12 @@
 
 import * as React from 'react'
 import * as d3 from 'd3'
+import { select, selectAll } from 'd3-selection'
+import { forceSimulation, forceLink, forceManyBody, forceCenter, forceCollide } from 'd3-force'
+import { zoom, zoomIdentity } from 'd3-zoom'
+import { drag, D3DragEvent } from 'd3-drag'
+import { transition } from 'd3-transition'
+import type { D3PointerEvent } from 'd3-selection'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'

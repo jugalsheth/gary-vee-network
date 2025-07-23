@@ -577,9 +577,9 @@
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb {
-  background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
+  background: rgba(120, 120, 120, 0.3); /* subtle gray, semi-transparent */
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(180deg, #5a6fd8 0%, #6a4190 100%);
+  background: rgba(120, 120, 120, 0.5); /* slightly darker on hover */
 }

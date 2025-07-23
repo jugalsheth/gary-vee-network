@@ -242,9 +242,11 @@ interface PremiumSearchBarProps {
   searchQuery: string;
   setSearchQuery: (q: string) => void;
   contacts: Contact[];
+  navigateToContact: (contact: Contact) => void;
+  showSuggestions: boolean;
+  setShowSuggestions: (show: boolean) => void;
 }
-const PremiumSearchBar: React.FC<PremiumSearchBarProps> = ({ searchQuery, setSearchQuery, contacts }) => {
-  const [showSuggestions, setShowSuggestions] = useState(false);
+const PremiumSearchBar: React.FC<PremiumSearchBarProps> = ({ searchQuery, setSearchQuery, contacts, navigateToContact, showSuggestions, setShowSuggestions }) => {
   const [suggestions, setSuggestions] = useState<Contact[]>([]);
   const [loadingSuggestions, setLoadingSuggestions] = useState(false);
 
@@ -310,10 +312,10 @@ const PremiumSearchBar: React.FC<PremiumSearchBarProps> = ({ searchQuery, setSea
               <button
                 key={contact.id}
                 onClick={() => {
-                  setSearchQuery(contact.name);
+                  navigateToContact(contact);
                   setShowSuggestions(false);
                 }}
-                className="w-full flex items-center space-x-3 px-3 py-2 hover:bg-muted rounded-lg transition-colors duration-200"
+                className="w-full flex items-center space-x-3 px-3 py-2 hover:bg-muted rounded-lg transition-colors duration-200 group"
                 style={{ animationDelay: `${index * 50}ms` }}
               >
                 <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold ${
@@ -330,6 +332,10 @@ const PremiumSearchBar: React.FC<PremiumSearchBarProps> = ({ searchQuery, setSea
                   <div className="text-xs text-muted-foreground">
                     {contact.email}
                   </div>
+                </div>
+                <div className="flex items-center text-xs text-gray-400 group-hover:text-gray-600">
+                  <span>Go to contact</span>
+                  <ChevronRight className="w-4 h-4 ml-1" />
                 </div>
               </button>
             ))}
@@ -369,12 +375,15 @@ export default function Home() {
   const [locationFilter, setLocationFilter] = useState<string>('all');
   const [filterLoading, setFilterLoading] = useState(false);
   const [filterError, setFilterError] = useState<string | null>(null);
+  // Add showSuggestions state for search dropdown
+  const [showSuggestions, setShowSuggestions] = useState(false);
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(30);
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
+  const [highlightedContactId, setHighlightedContactId] = useState<string | null>(null);
 
   // Fetch paginated contacts from backend
   const fetchContacts = useCallback(async (page = 1) => {
@@ -767,6 +776,55 @@ export default function Home() {
     fetchFilteredContacts(currentPage, tierFilter, locationFilter);
   }, [fetchFilteredContacts, currentPage, tierFilter, locationFilter]);
 
+  // Helper to find which page a contact is on
+  const findContactPage = async (contactId: string) => {
+    try {
+      const response = await fetch(`/api/contacts/find-page/${contactId}`);
+      if (response.ok) {
+        const data = await response.json();
+        return data.page;
+      }
+    } catch (error) {
+      console.error('Error finding contact page:', error);
+    }
+    return 1;
+  };
+
+  // Smart navigation to contact
+  const navigateToContact = async (contact: Contact) => {
+    try {
+      console.log('🎯 Navigating to contact:', contact.name);
+      setSearchQuery('');
+      setShowSuggestions(false);
+      setLoading(true);
+      const targetPage = await findContactPage(contact.id);
+      console.log('📄 Contact is on page:', targetPage);
+      setCurrentPage(targetPage);
+      // Wait for contacts to load for the new page
+      const response = await fetch(`/api/contacts?page=${targetPage}&limit=30`);
+      if (response.ok) {
+        const data = await response.json();
+        setContacts(data.contacts || []);
+        setFilteredContacts(data.contacts || []);
+        setTotalItems(data.total || 0);
+      }
+      setHighlightedContactId(contact.id);
+      setTimeout(() => {
+        const contactElement = document.getElementById(`contact-${contact.id}`);
+        if (contactElement) {
+          contactElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }, 500);
+      setTimeout(() => {
+        setHighlightedContactId(null);
+      }, 3000);
+    } catch (error) {
+      console.error('Navigation error:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <GlobalContactProvider>
       <ProtectedRoute>
@@ -824,7 +882,14 @@ export default function Home() {
           {/* Enhanced Premium Search Bar */}
           <div className="max-w-7xl mx-auto mt-8 mb-4 flex flex-wrap items-center gap-4 px-4 sm:px-6 lg:px-8">
             <div className="flex-1 min-w-[250px]">
-              <PremiumSearchBar searchQuery={searchQuery} setSearchQuery={setSearchQuery} contacts={contacts} />
+              <PremiumSearchBar
+                searchQuery={searchQuery}
+                setSearchQuery={setSearchQuery}
+                contacts={contacts}
+                navigateToContact={navigateToContact}
+                showSuggestions={showSuggestions}
+                setShowSuggestions={setShowSuggestions}
+              />
             </div>
             <Select value={tierFilter} onValueChange={setTierFilter}>
               <SelectTrigger className="w-28">
@@ -869,19 +934,23 @@ export default function Home() {
                     <div className="text-gray-400">Loading contacts...</div>
                   </div>
                 ) : (
-                  <>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-8 px-6 py-6">
-                      {contacts.map((contact, index) => (
-                        <ContactCard
-                          key={contact.id}
-                          contact={contact}
-                          onEdit={handleEditContact}
-                          onDelete={() => handleDeleteContact(contact.id)}
-                        />
-                      ))}
+                  <div className="w-full max-w-full overflow-x-hidden">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-8 py-6">
+                        {contacts.map((contact, index) => (
+                          <ContactCard
+                            key={contact.id}
+                            contact={contact}
+                            onEdit={handleEditContact}
+                            onDelete={() => handleDeleteContact(contact.id)}
+                            isHighlighted={highlightedContactId === contact.id}
+                            id={`contact-${contact.id}`}
+                          />
+                        ))}
+                      </div>
+                    <div className="w-full max-w-full">
+                      <PaginationControls />
                     </div>
-                    <PaginationControls />
-                  </>
+                  </div>
                 )
               )}
 

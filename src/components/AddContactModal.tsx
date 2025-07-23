@@ -87,6 +87,11 @@ export function AddContactModal({ open, onOpenChange, onAdd }: AddContactModalPr
     mode: 'onChange',
   })
 
+  const formData = form.watch();
+  const { name, tier, contactType } = formData;
+  const showBusinessFields = React.useMemo(() => contactType === 'business', [contactType]);
+  const showInfluencerFields = React.useMemo(() => contactType === 'influencer', [contactType]);
+
   const handleClose = () => {
     onOpenChange(false)
     form.reset()
@@ -212,20 +217,20 @@ export function AddContactModal({ open, onOpenChange, onAdd }: AddContactModalPr
           </div>
 
           {/* Avatar Preview */}
-          {(entryMode === 'manual' || showDataPreview) && form.watch('name') && (
+          {(entryMode === 'manual' || showDataPreview) && name && (
             <div className="flex items-center gap-4 p-4 bg-gray-50 dark:bg-gray-900/50 rounded-lg border border-gray-200 dark:border-gray-700 mb-6">
               <ContactAvatar 
-                name={form.watch('name')} 
-                tier={form.watch('tier')} 
+                name={name} 
+                tier={tier} 
                 size="lg" 
               />
               <div>
                 <h3 className="font-semibold text-gray-900 dark:text-gray-100">
-                  {form.watch('name')}
+                  {name}
                 </h3>
                 <p className="text-sm text-gray-600 dark:text-gray-400">
-                  {form.watch('tier') === 'tier1' ? 'Tier 1 (Pink)' : 
-                   form.watch('tier') === 'tier2' ? 'Tier 2 (Yellow)' : 'Tier 3 (Green)'}
+                  {tier === 'tier1' ? 'Tier 1 (Pink)' : 
+                   tier === 'tier2' ? 'Tier 2 (Yellow)' : 'Tier 3 (Green)'}
                 </p>
               </div>
             </div>
@@ -294,7 +299,7 @@ export function AddContactModal({ open, onOpenChange, onAdd }: AddContactModalPr
                           <span className="text-sm text-gray-500 dark:text-gray-400">Avatar:</span>
                           <ContactAvatar 
                             name={field.value} 
-                            tier={form.watch('tier')} 
+                            tier={tier} 
                             size="sm" 
                           />
                         </div>
@@ -342,7 +347,7 @@ export function AddContactModal({ open, onOpenChange, onAdd }: AddContactModalPr
                 </FormItem>
               )} />
                 {/* Influencer-specific fields */}
-                {form.watch('contactType') === 'influencer' && (
+                {showInfluencerFields && (
                   <>
                     <FormField control={form.control} name="instagram" render={({ field }) => (
                       <FormItem>
@@ -387,7 +392,7 @@ export function AddContactModal({ open, onOpenChange, onAdd }: AddContactModalPr
                 </FormItem>
               )} />
                 {/* Business-specific fields */}
-                {form.watch('contactType') === 'business' && (
+                {showBusinessFields && (
                   <>
                     <FormField control={form.control} name="relationshipToGary" render={({ field }) => (
                       <FormItem>
