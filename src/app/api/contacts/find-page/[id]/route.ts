@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server';
-import { snowflakeManager } from '@/lib/snowflake';
+import { snowflakeManagerVercel as snowflakeManager } from '@/lib/snowflake-vercel';
 
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
   try {

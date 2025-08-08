@@ -1,9 +1,8 @@
-import { snowflakeManager } from '@/lib/snowflake';
+import { snowflakeManagerVercel as snowflakeManager } from '@/lib/snowflake-vercel';
 
 export async function GET() {
   try {
     console.log('🧪 Testing Snowflake connection with BIZ_APPS role...');
-    await snowflakeManager.connect();
     const result = await snowflakeManager.execute('SELECT CURRENT_TIMESTAMP() as test_time, CURRENT_ROLE() as role');
     return Response.json({ 
       success: true, 

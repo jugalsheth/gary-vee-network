@@ -1,4 +1,4 @@
-import { snowflakeManager } from './snowflake';
+import { snowflakeManagerVercel as snowflakeManager } from './snowflake-vercel';
 import { Contact } from './types';
 import type { Tier } from './types';
 import { v4 as uuidv4 } from 'uuid';
