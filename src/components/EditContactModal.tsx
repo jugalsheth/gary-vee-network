@@ -2,6 +2,7 @@
 
 import * as React from 'react'
 import { useForm } from 'react-hook-form'
+// @ts-ignore: No type definitions for '@hookform/resolvers/zod'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
@@ -14,7 +15,8 @@ import { Textarea } from '@/components/ui/textarea'
 import { Badge } from '@/components/ui/badge'
 import { getTierBadge } from '@/lib/constants'
 import type { Contact, Tier } from '@/lib/types'
-import { User, Mail, Phone, MapPin, Heart, Baby, Tag, FileText } from 'lucide-react'
+import { User, Mail, Phone, MapPin, Heart, Baby, Tag, FileText, Mic } from 'lucide-react'
+import { VoiceRecorder } from '@/components/VoiceRecorder'
 
 const ContactSchema = z.object({
   name: z.string().min(1, 'Name is required'),
@@ -82,6 +84,31 @@ export function EditContactModal({ open, onOpenChange, contact, onUpdate }: Edit
   const handleClose = () => {
     onOpenChange(false)
     form.reset()
+  }
+
+  // Handle voice transcription completion
+  const handleVoiceTranscription = (transcript: string) => {
+    const currentNotes = form.getValues('notes')
+    const timestamp = new Date().toLocaleString()
+    const voiceNoteEntry = `\n\n[Voice Note - ${timestamp}]:\n${transcript}`
+    
+    // Append the voice note to existing notes
+    const updatedNotes = currentNotes + voiceNoteEntry
+    form.setValue('notes', updatedNotes)
+  }
+
+  // Handle clearing notes
+  const handleClearNotes = () => {
+    form.setValue('notes', '')
+  }
+
+  // Handle clearing only voice notes (remove lines starting with [Voice Note)
+  const handleClearVoiceNotes = () => {
+    const currentNotes = form.getValues('notes')
+    const lines = currentNotes.split('\n')
+    const filteredLines = lines.filter(line => !line.trim().startsWith('[Voice Note'))
+    const cleanedNotes = filteredLines.join('\n').trim()
+    form.setValue('notes', cleanedNotes)
   }
 
   const onSubmit = (values: ContactFormValues) => {
@@ -347,6 +374,28 @@ export function EditContactModal({ open, onOpenChange, contact, onUpdate }: Edit
                 )}
               />
 
+              {/* Voice Notes Section */}
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <Mic className="w-4 h-4 text-blue-600" />
+                  <h4 className="font-medium text-gray-900 dark:text-gray-100">Voice Notes</h4>
+                  {form.getValues('notes')?.includes('[Voice Note') && (
+                    <Badge variant="secondary" className="text-xs bg-blue-100 text-blue-700">
+                      Voice notes present
+                    </Badge>
+                  )}
+                </div>
+                <div className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+                  Record voice notes to quickly add meeting insights, follow-ups, or observations about this contact. 
+                  Voice notes will be automatically appended to the notes field with timestamps.
+                </div>
+                <VoiceRecorder 
+                  onTranscriptionComplete={handleVoiceTranscription}
+                  existingNotes={form.getValues('notes')}
+                  className="border-blue-200 bg-blue-50/50"
+                />
+              </div>
+
               <FormField
                 control={form.control}
                 name="notes"
@@ -358,12 +407,34 @@ export function EditContactModal({ open, onOpenChange, contact, onUpdate }: Edit
                     </FormLabel>
                     <FormControl>
                       <Textarea
-                        placeholder="Add any additional notes about this contact..."
-                        className="min-h-[100px]"
+                        placeholder="Add any additional notes about this contact... Voice notes will be automatically appended here."
+                        className="min-h-[120px]"
                         {...field}
                       />
                     </FormControl>
                     <FormMessage />
+                    
+                    {/* Notes Management Buttons */}
+                    <div className="flex gap-2 mt-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={handleClearVoiceNotes}
+                        className="text-xs"
+                      >
+                        Clear Voice Notes
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={handleClearNotes}
+                        className="text-xs text-red-600 hover:text-red-700"
+                      >
+                        Clear All Notes
+                      </Button>
+                    </div>
                   </FormItem>
                 )}
               />
