@@ -1,4 +1,11 @@
-import { snowflakeManager } from './snowflake';
+// Conditional import based on environment
+const isVercel = process.env.VERCEL === '1' || process.env.NODE_ENV === 'production';
+
+// Import the appropriate Snowflake manager
+const { snowflakeManager } = isVercel 
+  ? require('./snowflake-vercel-deploy')
+  : require('./snowflake');
+
 import { Contact } from './types';
 import type { Tier } from './types';
 import { v4 as uuidv4 } from 'uuid';
