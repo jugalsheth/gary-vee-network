@@ -56,14 +56,20 @@ class SnowflakeConnectionPool {
 
 // --- Update SnowflakeManager to use the pool ---
 class SnowflakeManager {
-  private pool: SnowflakeConnectionPool;
+  private pool: SnowflakeConnectionPool | null = null;
   private config: SnowflakeConfig;
   private privateKey: string = '';
 
   constructor(config: SnowflakeConfig) {
     this.config = config;
-    this.loadAndProcessPrivateKey();
-    this.pool = new SnowflakeConnectionPool(this.config, this.privateKey);
+    
+    // Only initialize if we're not in build time or if the private key path exists
+    if (typeof window === 'undefined' && process.env.NODE_ENV !== 'production' || fs.existsSync(this.config.privateKeyPath)) {
+      this.loadAndProcessPrivateKey();
+      this.pool = new SnowflakeConnectionPool(this.config, this.privateKey);
+    } else {
+      console.warn('⚠️ SnowflakeManager not initialized: Missing private key file or running in build context.');
+    }
   }
 
   private loadAndProcessPrivateKey(): void {
@@ -85,6 +91,11 @@ class SnowflakeManager {
   }
 
   async execute(query: string, binds?: any[]): Promise<any> {
+    if (!this.pool) {
+      console.error('❌ Snowflake connection pool is not initialized. Cannot execute query.');
+      throw new Error('Snowflake connection not available.');
+    }
+    
     const conn = await this.pool.getConnection();
     try {
       // LOG EVERY SINGLE SQL QUERY AND PARAMETER

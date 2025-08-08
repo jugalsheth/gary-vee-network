@@ -1,4 +1,4 @@
-import { snowflakeManagerVercel as snowflakeManager } from '@/lib/snowflake-vercel';
+import { snowflakeManager } from '@/lib/snowflake';
 
 export async function GET() {
   try {
