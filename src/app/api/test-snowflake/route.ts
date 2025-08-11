@@ -1,8 +1,4 @@
-// Conditional import based on environment
-const isVercel = process.env.VERCEL === '1' || process.env.NODE_ENV === 'production';
-const { snowflakeManager } = isVercel 
-  ? require('@/lib/snowflake-vercel-deploy')
-  : require('@/lib/snowflake');
+import { snowflakeManagerVercel as snowflakeManager } from '@/lib/snowflake-vercel';
 
 export async function GET() {
   try {
