@@ -39,6 +39,7 @@ import { debounce } from 'lodash';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ViewModeTabsPills } from '@/components/ViewModeTabsPills';
 import { Checkbox } from '@/components/ui/checkbox';
+import { CompactCacheMonitor } from '@/components/CachePerformanceMonitor';
 
 // --- GLOBAL CONTACT CONTEXT ---
 const GlobalContactContext = createContext<GlobalContactState | undefined>(undefined);
@@ -1173,6 +1174,11 @@ export default function Home() {
 
           {/* Main Content */}
           <main className="max-w-[95%] mx-auto px-2 sm:px-4 lg:px-6 py-8">
+            {/* Cache Performance Monitor */}
+            <div className="mb-6">
+              <CompactCacheMonitor />
+            </div>
+            
             <div className="space-y-8">
               {/* Search and Filters */}
               {/* <AdvancedSearch
