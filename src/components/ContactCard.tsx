@@ -301,10 +301,10 @@ const sampleContact: Contact = {
   createdBy: 'gary', // placeholder value
 }
 
-export function ContactCardDemo() {
+export function ContactCardDemo({ contact }: { contact: Contact }) {
   return (
     <div className="max-w-md mx-auto p-4">
-      <MemoizedContactCard contact={sampleContact} />
+      <MemoizedContactCard contact={contact} />
     </div>
   )
 } 

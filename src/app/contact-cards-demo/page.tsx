@@ -64,8 +64,8 @@ export default function ContactCardsDemoPage() {
       notes: 'Sarah is a close personal friend who has been there through thick and thin. She\'s also a successful fitness entrepreneur.',
       instagram: 'sarahwilson',
       connections: [
-        { contactId: '1', strength: 'medium', type: 'personal', createdAt: new Date() },
-        { contactId: '4', strength: 'strong', type: 'family', createdAt: new Date() }
+        { contactId: '1', strength: 'medium', type: 'business', createdAt: new Date() },
+        { contactId: '4', strength: 'strong', type: 'business', createdAt: new Date() }
       ],
       createdAt: new Date('2023-06-15'),
       updatedAt: new Date('2024-01-25'),
