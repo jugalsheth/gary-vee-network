@@ -78,7 +78,7 @@ export function ConnectionModal({
             <div>
               <DialogTitle className="text-lg font-semibold">Add Connection</DialogTitle>
               <DialogDescription className="text-gray-600 dark:text-gray-400">
-                Connect {sourceContact.name} with {targetContact.name}
+                Connect {sourceContact.name} with another contact
               </DialogDescription>
             </div>
           </div>
