@@ -18,9 +18,10 @@ import { NetworkVisualization } from '@/components/NetworkVisualization'
 import { ConnectionModal } from '@/components/ConnectionModal'
 import { NetworkInsights } from '@/components/NetworkInsights'
 import { VoiceNotesDemo } from '@/components/VoiceNotesDemo'
+import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Search, Phone, MapPin, Instagram, Edit2, Trash2, X, Users, Star, Target, Network, Plus, Upload, Grid, List, BarChart3, Mic, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Search, Phone, MapPin, Instagram, Edit2, Trash2, X, Users, Star, Target, Network, Plus, Upload, Grid, List, BarChart3, Mic, ChevronLeft, ChevronRight, Filter, ChevronUp, ChevronDown, Zap } from 'lucide-react'
 import { getTeamColor } from '@/lib/auth'
 import { exportContactsToCSV } from '@/lib/importExport'
 import { toast } from 'sonner';
@@ -37,6 +38,7 @@ import HeaderAnalytics from '@/components/HeaderAnalytics';
 import { debounce } from 'lodash';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ViewModeTabsPills } from '@/components/ViewModeTabsPills';
+import { Checkbox } from '@/components/ui/checkbox';
 
 // --- GLOBAL CONTACT CONTEXT ---
 const GlobalContactContext = createContext<GlobalContactState | undefined>(undefined);
@@ -265,6 +267,8 @@ const PremiumSearchBar: React.FC<PremiumSearchBarProps> = ({ searchQuery, setSea
       const data = await response.json();
       setSuggestions(data.contacts || []);
       setShowSuggestions((data.contacts || []).length > 0);
+      
+
     } catch (err) {
       setSuggestions([]);
       setShowSuggestions(false);
@@ -287,7 +291,7 @@ const PremiumSearchBar: React.FC<PremiumSearchBarProps> = ({ searchQuery, setSea
           type="text"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder={`Search contacts...`}
+          placeholder="Search contacts by name, email, location, or notes..."
           className="block w-full pl-12 pr-12 py-4 bg-input border border-border rounded-2xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-4 focus:ring-ring transition-all duration-300 shadow-sm hover:shadow-lg focus:shadow-xl group-hover:border-gray-300"
         />
         {/* Enhanced clear button */}
@@ -302,13 +306,18 @@ const PremiumSearchBar: React.FC<PremiumSearchBarProps> = ({ searchQuery, setSea
           </button>
         )}
       </div>
-      {/* Live suggestions dropdown */}
+      
+      {/* Enhanced suggestions dropdown */}
       {showSuggestions && (
         <div className="absolute top-full mt-2 left-0 right-0 bg-card border border-border rounded-xl shadow-xl z-50 overflow-hidden animate-slideDown">
           <div className="p-2">
-            <div className="text-xs text-muted-foreground px-3 py-2 font-medium">
+            <div className="text-xs text-muted-foreground px-3 py-2 font-medium border-b border-border mb-2">
               {loadingSuggestions ? 'Searching...' : `Quick Results (${suggestions.length})`}
             </div>
+            
+
+            
+            {/* Search Results */}
             {suggestions.map((contact, index) => (
               <button
                 key={contact.id}
@@ -333,6 +342,21 @@ const PremiumSearchBar: React.FC<PremiumSearchBarProps> = ({ searchQuery, setSea
                   <div className="text-xs text-muted-foreground">
                     {contact.email}
                   </div>
+                  <div className="text-xs text-gray-500 flex items-center gap-2 mt-1">
+                    <span className={`px-2 py-1 rounded-full text-xs ${
+                      contact.tier === 'tier1' ? 'bg-pink-100 text-pink-700' :
+                      contact.tier === 'tier2' ? 'bg-yellow-100 text-yellow-700' :
+                      'bg-green-100 text-green-700'
+                    }`}>
+                      {contact.tier === 'tier1' ? 'Tier 1' : contact.tier === 'tier2' ? 'Tier 2' : 'Tier 3'}
+                    </span>
+                    {contact.location && (
+                      <span className="flex items-center gap-1">
+                        <MapPin className="w-3 h-3" />
+                        {contact.location}
+                      </span>
+                    )}
+                  </div>
                 </div>
                 <div className="flex items-center text-xs text-gray-400 group-hover:text-gray-600">
                   <span>Go to contact</span>
@@ -340,6 +364,15 @@ const PremiumSearchBar: React.FC<PremiumSearchBarProps> = ({ searchQuery, setSea
                 </div>
               </button>
             ))}
+            
+            {/* No Results Message */}
+            {!loadingSuggestions && suggestions.length === 0 && searchQuery && (
+              <div className="px-3 py-4 text-center text-gray-500">
+                <Search className="w-8 h-8 mx-auto mb-2 text-gray-300" />
+                <p className="text-sm">No contacts found</p>
+                <p className="text-xs">Try adjusting your search terms</p>
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -369,7 +402,8 @@ export default function Home() {
     hasKids: null,
     isMarried: null,
     location: 'all',
-    interests: []
+    interests: [],
+    contactType: null
   })
   const [searchQuery, setSearchQuery] = useState('');
   const [tierFilter, setTierFilter] = useState<string>('all');
@@ -378,6 +412,8 @@ export default function Home() {
   const [filterError, setFilterError] = useState<string | null>(null);
   // Add showSuggestions state for search dropdown
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
+  const [searchHistory, setSearchHistory] = useState<string[]>([]);
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -744,6 +780,58 @@ export default function Home() {
     return Array.from(new Set(locs));
   }, [contacts]);
 
+  // Get all unique interests for filter dropdown
+  const allInterests = useMemo(() => {
+    const interests = contacts.flatMap(c => c.interests || [])
+    return [...new Set(interests)].filter(Boolean).sort()
+  }, [contacts])
+
+  // Add search to history when searching
+  useEffect(() => {
+    if (searchQuery && !searchHistory.includes(searchQuery)) {
+      setSearchHistory(prev => [searchQuery, ...prev.slice(0, 9)]);
+    }
+  }, [searchQuery, searchHistory]);
+
+  // Apply filters to contacts
+  const filteredContactsWithAdvancedFilters = useMemo(() => {
+    return contacts.filter(contact => {
+      // Basic tier filter
+      if (tierFilter !== 'all' && contact.tier !== tierFilter) {
+        return false;
+      }
+      
+      // Basic location filter
+      if (locationFilter !== 'all' && contact.location !== locationFilter) {
+        return false;
+      }
+      
+      // Advanced filters
+      if (activeFilters.hasKids !== null && contact.hasKids !== activeFilters.hasKids) {
+        return false;
+      }
+      
+      if (activeFilters.isMarried !== null && contact.isMarried !== activeFilters.isMarried) {
+        return false;
+      }
+      
+      if (activeFilters.interests.length > 0) {
+        const hasMatchingInterest = activeFilters.interests.some(interest => 
+          contact.interests?.includes(interest)
+        );
+        if (!hasMatchingInterest) {
+          return false;
+        }
+      }
+      
+      if (activeFilters.contactType && contact.contactType !== activeFilters.contactType) {
+        return false;
+      }
+      
+      return true;
+    });
+  }, [contacts, tierFilter, locationFilter, activeFilters]);
+
   // Fetch contacts with filters
   const fetchFilteredContacts = useCallback(async (page = 1, tier = tierFilter, location = locationFilter) => {
     setFilterLoading(true);
@@ -871,8 +959,15 @@ export default function Home() {
                   {/* Import/Export Buttons */}
                   <Button onClick={handleImportClick} variant="outline" size="sm" className="flex items-center gap-2" type="button" disabled={false}><Upload className="w-4 h-4" /><span>Import</span></Button>
                   <ExportButton contacts={filteredContacts} />
-                  {/* Voice Notes Demo Button */}
-                  <Button onClick={() => setShowVoiceNotesDemo(true)} variant="outline" className="bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100"><Mic className="w-4 h-4" />Voice Demo</Button>
+                          {/* Voice Notes Demo Button */}
+        <Button onClick={() => setShowVoiceNotesDemo(true)} variant="outline" className="bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100"><Mic className="w-4 h-4" />Voice Demo</Button>
+        
+        {/* Enhanced Search Demo Button */}
+        <Link href="/enhanced-search-demo">
+          <Button variant="outline" className="bg-green-50 border-green-200 text-green-700 hover:bg-green-100">
+            <Search className="w-4 h-4" />Enhanced Search Demo
+          </Button>
+        </Link>
                   {/* Add Contact Button */}
                   <Button onClick={() => setShowAddModal(true)} className="flex items-center gap-2"><Plus className="w-4 h-4" />Add Contact</Button>
                 </div> {/* closes .flex.items-center.gap-2 */}
@@ -893,31 +988,189 @@ export default function Home() {
                 setShowSuggestions={setShowSuggestions}
               />
             </div>
-            <Select value={tierFilter} onValueChange={setTierFilter}>
-              <SelectTrigger className="w-28">
-                <SelectValue placeholder="Tier" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Tiers</SelectItem>
-                <SelectItem value="tier1">Tier 1</SelectItem>
-                <SelectItem value="tier2">Tier 2</SelectItem>
-                <SelectItem value="tier3">Tier 3</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select value={locationFilter} onValueChange={setLocationFilter}>
-              <SelectTrigger className="w-36">
-                <SelectValue placeholder="Location" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Locations</SelectItem>
-                {uniqueLocations.map(loc => (
-                  <SelectItem key={loc} value={loc}>{loc}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            
+            {/* Compact Filter Controls */}
+            <div className="flex items-center gap-2">
+              <Select value={tierFilter} onValueChange={setTierFilter}>
+                <SelectTrigger className="w-24 h-9">
+                  <SelectValue placeholder="Tier" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Tiers</SelectItem>
+                  <SelectItem value="tier1">Tier 1</SelectItem>
+                  <SelectItem value="tier2">Tier 2</SelectItem>
+                  <SelectItem value="tier3">Tier 3</SelectItem>
+                </SelectContent>
+              </Select>
+              
+              <Select value={locationFilter} onValueChange={setLocationFilter}>
+                <SelectTrigger className="w-32 h-9">
+                  <SelectValue placeholder="Location" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Locations</SelectItem>
+                  {uniqueLocations.map(loc => (
+                    <SelectItem key={loc} value={loc}>{loc}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              
+              {/* Compact Advanced Filters Toggle */}
+              <Button
+                variant={showAdvancedFilters ? "default" : "outline"}
+                size="sm"
+                onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
+                className="h-9 px-3"
+              >
+                <Filter className="w-4 h-4 mr-1" />
+                {showAdvancedFilters ? "Hide" : "More"}
+              </Button>
+            </div>
+            
             {filterLoading && <span className="text-sm text-gray-500">Loading...</span>}
             {filterError && <span className="text-sm text-red-500">{filterError}</span>}
           </div>
+          
+          {/* Compact Advanced Filters Section */}
+          {showAdvancedFilters && (
+            <div className="max-w-7xl mx-auto mb-4 px-4 sm:px-6 lg:px-8">
+              <div className="bg-card border border-border rounded-lg p-4 shadow-sm">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {/* Personal Status Filters */}
+                  <div>
+                    <label className="block text-xs font-medium mb-2 text-foreground">Personal Status</label>
+                    <div className="space-y-2">
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          id="hasKids"
+                          checked={activeFilters.hasKids === true}
+                          onCheckedChange={(checked) => setActiveFilters(prev => ({ ...prev, hasKids: checked === true ? true : null }))}
+                        />
+                        <label htmlFor="hasKids" className="text-xs text-muted-foreground">Has Kids</label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          id="isMarried"
+                          checked={activeFilters.isMarried === true}
+                          onCheckedChange={(checked) => setActiveFilters(prev => ({ ...prev, isMarried: checked === true ? true : null }))}
+                        />
+                        <label htmlFor="isMarried" className="text-xs text-muted-foreground">Is Married</label>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Interests Filter */}
+                  <div>
+                    <label className="block text-xs font-medium mb-2 text-foreground">Top Interests</label>
+                    <div className="space-y-1 max-h-20 overflow-y-auto">
+                      {allInterests.slice(0, 4).map((interest) => (
+                        <div key={interest} className="flex items-center space-x-2">
+                          <Checkbox
+                            id={interest}
+                            checked={activeFilters.interests.includes(interest)}
+                            onCheckedChange={(checked) => {
+                              if (checked) {
+                                setActiveFilters(prev => ({ ...prev, interests: [...prev.interests, interest] }));
+                              } else {
+                                setActiveFilters(prev => ({ ...prev, interests: prev.interests.filter(i => i !== interest) }));
+                              }
+                            }}
+                          />
+                          <label htmlFor={interest} className="text-xs text-muted-foreground">{interest}</label>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  
+                  {/* Contact Type Filter */}
+                  <div>
+                    <label className="block text-xs font-medium mb-2 text-foreground">Contact Type</label>
+                    <Select value={activeFilters.contactType || 'all'} onValueChange={(value) => setActiveFilters(prev => ({ ...prev, contactType: value === 'all' ? null : value }))}>
+                      <SelectTrigger className="w-full h-8">
+                        <SelectValue placeholder="All Types" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Types</SelectItem>
+                        <SelectItem value="business">Business</SelectItem>
+                        <SelectItem value="influencer">Influencer</SelectItem>
+                        <SelectItem value="personal">Personal</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  {/* Quick Actions */}
+                  <div>
+                    <label className="block text-xs font-medium mb-2 text-foreground">Actions</label>
+                    <div className="space-y-1">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full h-8 text-xs"
+                        onClick={() => {
+                          setActiveFilters({
+                            searchText: '',
+                            tier: 'all',
+                            hasKids: null,
+                            isMarried: null,
+                            location: 'all',
+                            interests: [],
+                            contactType: null
+                          });
+                          setSearchQuery('');
+                          setTierFilter('all');
+                          setLocationFilter('all');
+                        }}
+                      >
+                        <X className="w-3 h-3 mr-1" />
+                        Clear All
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+          
+          {/* Compact Search Analytics Section */}
+          <div className="max-w-7xl mx-auto mb-4 px-4 sm:px-6 lg:px-8">
+            <div className="flex items-center justify-between bg-muted/50 rounded-lg p-3">
+              <div className="flex items-center gap-4 text-sm">
+                <span className="text-muted-foreground">Results: <span className="font-medium text-foreground">{filteredContactsWithAdvancedFilters.length}</span></span>
+                <span className="text-muted-foreground">Filters: <span className="font-medium text-foreground">
+                  {[
+                    activeFilters.tier !== 'all' ? 1 : 0,
+                    activeFilters.location !== 'all' ? 1 : 0,
+                    activeFilters.hasKids !== null ? 1 : 0,
+                    activeFilters.isMarried !== null ? 1 : 0,
+                    activeFilters.interests.length,
+                    activeFilters.contactType ? 1 : 0
+                  ].reduce((sum, count) => sum + count, 0)}
+                </span></span>
+                <span className="text-muted-foreground">Query: <span className="font-medium text-foreground">{searchQuery ? 'Active' : 'None'}</span></span>
+              </div>
+              
+              {/* Recent Searches Display */}
+              {!searchQuery && searchHistory.length > 0 && (
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-muted-foreground">Recent:</span>
+                  <div className="flex gap-1">
+                    {searchHistory.slice(0, 3).map((query, index) => (
+                      <button
+                        key={index}
+                        onClick={() => setSearchQuery(query)}
+                        className="px-2 py-1 text-xs bg-background border border-border rounded hover:bg-accent transition-colors"
+                      >
+                        {query}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+          
+
+
           {/* Main Content */}
           <main className="max-w-[95%] mx-auto px-2 sm:px-4 lg:px-6 py-8">
             <div className="space-y-8">
@@ -1044,12 +1297,12 @@ export default function Home() {
             onUpdate={handleUpdateContact}
           />
 
-          <DeleteConfirmationModal
-            open={showDeleteModal}
-            onOpenChange={setShowDeleteModal}
-            contact={selectedContact}
-            onConfirm={handleConfirmDeleteContact}
-          />
+                  <DeleteConfirmationModal
+          isOpen={showDeleteModal}
+          onClose={() => setShowDeleteModal(false)}
+          contact={selectedContact}
+          onConfirm={handleConfirmDeleteContact}
+        />
 
           {/* Import Modal with debug logging */}
           <ImportModal
@@ -1062,14 +1315,25 @@ export default function Home() {
             Modal State: {showImportModal ? 'OPEN' : 'CLOSED'}
           </div>
 
-          <ConnectionModal
-            open={showConnectionModal}
-            onOpenChange={setShowConnectionModal}
-            contact={selectedContact}
-            allContacts={contacts}
-            onAddConnection={handleAddConnection}
-            onRemoveConnection={handleRemoveConnection}
-          />
+                  <ConnectionModal
+          isOpen={showConnectionModal}
+          onClose={() => setShowConnectionModal(false)}
+          sourceContact={selectedContact}
+          allContacts={contacts}
+          onConfirm={async (connection) => {
+            if (selectedContact) {
+              // Convert the connection format to match what handleAddConnection expects
+              const connectionForAPI: Connection = {
+                contactId: connection.targetContactId,
+                strength: connection.strength,
+                type: connection.type,
+                notes: connection.notes,
+                createdAt: connection.createdAt
+              };
+              await handleAddConnection(selectedContact.id, connectionForAPI);
+            }
+          }}
+        />
         </div>
       </ProtectedRoute>
     </GlobalContactProvider>

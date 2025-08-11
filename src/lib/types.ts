@@ -60,7 +60,7 @@ export interface Contact {
   updatedAt: Date
   createdBy: string
   tags?: string[]
-  team?: string; // Added for Snowflake integration
+  team?: string // Added for Snowflake integration
 }
 
 // --- Global Analytics Types ---

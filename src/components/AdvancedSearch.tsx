@@ -25,6 +25,7 @@ export interface FilterState {
   isMarried: boolean | null
   location: 'all' | string
   interests: string[]
+  contactType: string | null
 }
 
 const useDebounce = (value: string, delay: number) => {
@@ -186,7 +187,8 @@ export function AdvancedSearch({ contacts, onFilterChange, activeFilters, onActi
       hasKids: null,
       isMarried: null,
       location: 'all',
-      interests: []
+      interests: [],
+      contactType: null
     })
   }, [onActiveFiltersChange])
 
