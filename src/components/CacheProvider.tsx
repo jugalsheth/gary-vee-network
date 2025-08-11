@@ -113,7 +113,8 @@ export function CacheProvider({ children }: { children: ReactNode }) {
       try {
         await smartFetcher.preloadData();
       } catch (error) {
-        console.warn('Preloading failed:', error);
+        console.warn('⚠️ Preloading failed - backend may be unavailable:', error);
+        // Don't fail the app, just log the warning
       } finally {
         setIsPreloading(false);
       }

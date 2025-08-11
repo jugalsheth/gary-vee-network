@@ -240,14 +240,50 @@ class SmartFetcher {
       });
 
       if (!response.ok) {
+        // Handle specific error cases
+        if (response.status === 500) {
+          console.warn('⚠️ Server error (500) - likely missing environment variables');
+          // Return empty data instead of throwing
+          return this.getEmptyResponse<T>(url);
+        }
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
       return await response.json();
     } catch (error) {
       console.error('❌ API request failed:', error);
-      throw error;
+      
+      // Return empty response instead of throwing for better UX
+      console.log('🔄 Returning empty response due to API failure');
+      return this.getEmptyResponse<T>(url);
     }
+  }
+
+  // Get empty response based on endpoint
+  private getEmptyResponse<T>(url: string): T {
+    if (url.includes('/contacts')) {
+      return {
+        contacts: [],
+        total: 0,
+        page: 1,
+        limit: 30,
+      } as T;
+    }
+    
+    if (url.includes('/analytics')) {
+      return {
+        total: 0,
+        tierCounts: [],
+      } as T;
+    }
+    
+    if (url.includes('/network-stats')) {
+      return {
+        contacts: [],
+      } as T;
+    }
+    
+    return [] as T;
   }
 
   // Invalidate cache when data changes
