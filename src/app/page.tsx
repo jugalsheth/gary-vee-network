@@ -36,6 +36,7 @@ import { loadAllContacts } from '@/lib/importExport';
 import HeaderAnalytics from '@/components/HeaderAnalytics';
 import { debounce } from 'lodash';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { ViewModeTabs } from '@/components/ViewModeTabs';
 
 // --- GLOBAL CONTACT CONTEXT ---
 const GlobalContactContext = createContext<GlobalContactState | undefined>(undefined);
@@ -859,13 +860,12 @@ export default function Home() {
                     </div>
                   )}
                   <ThemeToggle />
-                  {/* View Mode Toggle */}
-                  <div className="flex items-center border border-gray-200 dark:border-gray-700 rounded-lg p-1 bg-gray-50 dark:bg-gray-800 transition-colors duration-300">
-                    <Button variant={viewMode === 'grid' ? 'default' : 'ghost'} size="sm" onClick={() => setViewMode('grid')} className="h-8 px-3"><Grid className="w-4 h-4" /></Button>
-                    <Button variant={viewMode === 'bulk' ? 'default' : 'ghost'} size="sm" onClick={() => setViewMode('bulk')} className="h-8 px-3"><List className="w-4 h-4" /></Button>
-                    <Button variant={viewMode === 'network' ? 'default' : 'ghost'} size="sm" onClick={() => setViewMode('network')} className="h-8 px-3"><Network className="w-4 h-4" /></Button>
-                    <Button variant={viewMode === 'insights' ? 'default' : 'ghost'} size="sm" onClick={() => setViewMode('insights')} className="h-8 px-3"><BarChart3 className="w-4 h-4" /></Button>
-                  </div>
+                  {/* Enhanced View Mode Tabs */}
+                  <ViewModeTabs 
+                    viewMode={viewMode} 
+                    onViewModeChange={setViewMode}
+                    className="w-auto"
+                  />
                   {/* Import/Export Buttons */}
                   <Button onClick={handleImportClick} variant="outline" size="sm" className="flex items-center gap-2" type="button" disabled={false}><Upload className="w-4 h-4" /><span>Import</span></Button>
                   <ExportButton contacts={filteredContacts} />

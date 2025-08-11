@@ -1,9 +1,14 @@
 import { NextRequest } from 'next/server';
-import { snowflakeManager } from '@/lib/snowflake';
 
-export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
+// Conditional import based on environment
+const isVercel = process.env.VERCEL === '1' || process.env.NODE_ENV === 'production';
+const { snowflakeManager } = isVercel 
+  ? require('@/lib/snowflake-vercel-deploy')
+  : require('@/lib/snowflake');
+
+export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const contactId = params.id;
+    const { id } = await params;
     // Query to find the position of this contact in the ordered list
     const query = `
       SELECT COUNT(*) as position 
@@ -15,7 +20,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
       )
       ORDER BY created_at DESC
     `;
-    const result = await snowflakeManager.execute(query, [contactId]);
+    const result = await snowflakeManager.execute(query, [id]);
     const position = result[0]?.POSITION || 1;
     // Calculate page (30 contacts per page)
     const page = Math.ceil(position / 30);
