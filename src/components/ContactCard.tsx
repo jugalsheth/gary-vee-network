@@ -1,14 +1,18 @@
 'use client'
 
 import { Edit2, Trash2, Phone, MapPin, Instagram, MessageCircle, UserPlus, Star, Clock, TrendingUp, Heart, Building, Home, Users, Zap } from "lucide-react"
-import type { Contact } from "@/lib/types"
+import type { Contact, Connection } from "@/lib/types"
 import * as React from "react"
 import { memo, useState } from "react"
 import { Badge } from "@/components/ui/badge"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { DeleteConfirmationModal } from './DeleteConfirmationModal'
+import { ConnectionModal } from './ConnectionModal'
+import { MessageModal } from './MessageModal'
 
 export interface ContactCardProps {
   contact: Contact
+  allContacts?: Contact[]
   onEdit?: (contact: Contact) => void
   onDelete?: (contact: Contact) => void
   onManageConnections?: (contact: Contact) => void
@@ -16,8 +20,14 @@ export interface ContactCardProps {
   id?: string;
 }
 
-const ContactCardComponent = ({ contact, onEdit, onDelete, onManageConnections, isHighlighted, id }: ContactCardProps) => {
+const ContactCardComponent = ({ contact, allContacts, onEdit, onDelete, onManageConnections, isHighlighted, id }: ContactCardProps) => {
   const [showQuickActions, setShowQuickActions] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showConnectionModal, setShowConnectionModal] = useState(false);
+  const [showMessageModal, setShowMessageModal] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [isAddingConnection, setIsAddingConnection] = useState(false);
+  const [isSendingMessage, setIsSendingMessage] = useState(false);
   
   if (!contact || !contact.name || !contact.id) return null;
 
@@ -52,6 +62,59 @@ const ContactCardComponent = ({ contact, onEdit, onDelete, onManageConnections, 
   };
 
   const contactStatus = getContactStatus();
+
+  // Handler functions
+  const handleDelete = async (contactToDelete: Contact) => {
+    setIsDeleting(true);
+    try {
+      if (onDelete) {
+        await onDelete(contactToDelete);
+      }
+      setShowDeleteModal(false);
+    } catch (error) {
+      console.error('Error deleting contact:', error);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const handleAddConnection = async (connectionData: Omit<Connection, 'contactId'>) => {
+    setIsAddingConnection(true);
+    try {
+      // For now, we'll just simulate adding a connection
+      // In the future, this will call an API to actually create the connection
+      console.log('Adding connection:', connectionData);
+      
+      // Simulate API call delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      setShowConnectionModal(false);
+      // You can add a toast notification here
+    } catch (error) {
+      console.error('Error adding connection:', error);
+    } finally {
+      setIsAddingConnection(false);
+    }
+  };
+
+  const handleSendMessage = async (message: string) => {
+    setIsSendingMessage(true);
+    try {
+      // For now, we'll just simulate sending a message
+      // In the future, this will call an API to actually send the message
+      console.log('Sending message to', contact.name, ':', message);
+      
+      // Simulate API call delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      setShowMessageModal(false);
+      // You can add a toast notification here
+    } catch (error) {
+      console.error('Error sending message:', error);
+    } finally {
+      setIsSendingMessage(false);
+    }
+  };
 
   return (
     <TooltipProvider>
@@ -210,7 +273,7 @@ const ContactCardComponent = ({ contact, onEdit, onDelete, onManageConnections, 
               <Tooltip>
                 <TooltipTrigger asChild>
                   <button
-                    onClick={() => onDelete && onDelete(contact)}
+                    onClick={() => setShowDeleteModal(true)}
                     className="p-2.5 rounded-lg transition-all duration-300 ease-out opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-900/10 border border-transparent hover:border-current"
                   >
                     <Trash2 className="w-4 h-4" />
@@ -227,7 +290,10 @@ const ContactCardComponent = ({ contact, onEdit, onDelete, onManageConnections, 
                   {/* Message Button */}
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <button className="p-2.5 rounded-lg transition-all duration-300 ease-out opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 hover:bg-blue-50 hover:text-blue-600 dark:hover:bg-blue-900/10 border border-transparent hover:border-current">
+                      <button 
+                        onClick={() => setShowMessageModal(true)}
+                        className="p-2.5 rounded-lg transition-all duration-300 ease-out opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 hover:bg-blue-50 hover:text-blue-600 dark:hover:bg-blue-900/10 border border-transparent hover:border-current"
+                      >
                         <MessageCircle className="w-4 h-4" />
                       </button>
                     </TooltipTrigger>
@@ -239,7 +305,10 @@ const ContactCardComponent = ({ contact, onEdit, onDelete, onManageConnections, 
                   {/* Add Connection Button */}
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <button className="p-2.5 rounded-lg transition-all duration-300 ease-out opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 hover:bg-purple-50 hover:text-purple-600 dark:hover:bg-purple-900/10 border border-transparent hover:border-current">
+                      <button 
+                        onClick={() => setShowConnectionModal(true)}
+                        className="p-2.5 rounded-lg transition-all duration-300 ease-out opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 hover:bg-purple-50 hover:text-purple-600 dark:hover:bg-purple-900/10 border border-transparent hover:border-current"
+                      >
                         <UserPlus className="w-4 h-4" />
                       </button>
                     </TooltipTrigger>
@@ -262,6 +331,32 @@ const ContactCardComponent = ({ contact, onEdit, onDelete, onManageConnections, 
           </div>
         </div>
       </div>
+
+      {/* Modals */}
+      <DeleteConfirmationModal
+        contact={contact}
+        isOpen={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        onConfirm={handleDelete}
+        isLoading={isDeleting}
+      />
+
+      <ConnectionModal
+        sourceContact={contact}
+        allContacts={allContacts || []}
+        isOpen={showConnectionModal}
+        onClose={() => setShowConnectionModal(false)}
+        onConfirm={handleAddConnection}
+        isLoading={isAddingConnection}
+      />
+
+      <MessageModal
+        contact={contact}
+        isOpen={showMessageModal}
+        onClose={() => setShowMessageModal(false)}
+        onSend={handleSendMessage}
+        isLoading={isSendingMessage}
+      />
     </TooltipProvider>
   );
 }
@@ -301,10 +396,10 @@ const sampleContact: Contact = {
   createdBy: 'gary', // placeholder value
 }
 
-export function ContactCardDemo({ contact }: { contact: Contact }) {
+export function ContactCardDemo({ contact, allContacts }: { contact: Contact; allContacts?: Contact[] }) {
   return (
     <div className="max-w-md mx-auto p-4">
-      <MemoizedContactCard contact={contact} />
+      <MemoizedContactCard contact={contact} allContacts={allContacts} />
     </div>
   )
 } 
