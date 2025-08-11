@@ -36,7 +36,7 @@ import { loadAllContacts } from '@/lib/importExport';
 import HeaderAnalytics from '@/components/HeaderAnalytics';
 import { debounce } from 'lodash';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ViewModeTabs } from '@/components/ViewModeTabs';
+import { ViewModeTabsPills } from '@/components/ViewModeTabsPills';
 
 // --- GLOBAL CONTACT CONTEXT ---
 const GlobalContactContext = createContext<GlobalContactState | undefined>(undefined);
@@ -860,11 +860,13 @@ export default function Home() {
                     </div>
                   )}
                   <ThemeToggle />
-                  {/* Enhanced View Mode Tabs */}
-                  <ViewModeTabs 
+                  {/* Enhanced View Mode Tabs - Pills Version */}
+                  <ViewModeTabsPills 
                     viewMode={viewMode} 
                     onViewModeChange={setViewMode}
                     className="w-auto"
+                    showBadge={true}
+                    badgeText="New"
                   />
                   {/* Import/Export Buttons */}
                   <Button onClick={handleImportClick} variant="outline" size="sm" className="flex items-center gap-2" type="button" disabled={false}><Upload className="w-4 h-4" /><span>Import</span></Button>
