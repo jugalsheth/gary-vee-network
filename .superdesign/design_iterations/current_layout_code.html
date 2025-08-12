@@ -1,0 +1,852 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gary Vee Network - Current Layout Code</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+        
+        :root {
+            --background: oklch(0.9900 0 0);
+            --foreground: oklch(0 0 0);
+            --card: oklch(1 0 0);
+            --card-foreground: oklch(0 0 0);
+            --primary: oklch(0 0 0);
+            --primary-foreground: oklch(1 0 0);
+            --secondary: oklch(0.9400 0 0);
+            --secondary-foreground: oklch(0 0 0);
+            --muted: oklch(0.9700 0 0);
+            --muted-foreground: oklch(0.4400 0 0);
+            --accent: oklch(0.9400 0 0);
+            --accent-foreground: oklch(0 0 0);
+            --border: oklch(0.9200 0 0);
+            --radius: 0.5rem;
+            --font-sans: "Inter", sans-serif;
+            --font-mono: "JetBrains Mono", monospace;
+        }
+
+        body {
+            font-family: var(--font-sans);
+            background: var(--background);
+            color: var(--foreground);
+        }
+
+        .code-section {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .code-block {
+            background: var(--muted);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 1rem;
+            font-family: var(--font-mono);
+            font-size: 0.875rem;
+            line-height: 1.4;
+            white-space: pre-wrap;
+            overflow-x: auto;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .component-preview {
+            background: var(--muted);
+            border: 2px dashed var(--border);
+            border-radius: var(--radius);
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+
+        .highlight {
+            background: #fef3c7;
+            color: #92400e;
+            padding: 0.125rem 0.25rem;
+            border-radius: 0.25rem;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body class="min-h-screen p-6">
+    <div class="max-w-7xl mx-auto">
+        <header class="mb-8">
+            <h1 class="text-4xl font-bold mb-2">Gary Vee Network - Current Layout Code</h1>
+            <p class="text-lg text-muted-foreground">Complete layout structure for Superdesign analysis and mockup creation</p>
+        </header>
+
+        <!-- Main Page Structure -->
+        <div class="code-section">
+            <h2 class="text-2xl font-semibold mb-4">📄 Main Page Structure (page.tsx)</h2>
+            <div class="code-block">
+// Main page component structure
+export default function Home() {
+  // State variables
+  const [contacts, setContacts] = useState<Contact[]>([]);
+  const [filteredContacts, setFilteredContacts] = useState<Contact[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [viewMode, setViewMode] = useState<'grid' | 'bulk' | 'network' | 'insights'>('grid');
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
+  
+  return (
+    <GlobalContactProvider>
+      <ProtectedRoute>
+        <CommandPalette />
+        
+        {/* Header Section */}
+        <header className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-900 border-b border-gray-200 dark:border-gray-700">
+          {/* Header content */}
+        </header>
+        
+        {/* Premium Analytics Header */}
+        <PremiumHeader />
+        
+        {/* Main Content Wrapper */}
+        <div className="min-h-screen premium-bg transition-colors duration-300">
+          {/* Search & Filters */}
+          {/* Main Content */}
+          {/* AI Chat */}
+        </div>
+        
+        {/* Modals */}
+      </ProtectedRoute>
+    </GlobalContactProvider>
+  );
+}</div>
+        </div>
+
+        <!-- Header Component -->
+        <div class="code-section">
+            <h2 class="text-2xl font-semibold mb-4">🏠 Header Component</h2>
+            <div class="code-block">
+{/* Header */}
+<header className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-900 border-b border-gray-200 dark:border-gray-700">
+  <div className="px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
+    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      {/* App Title and User Info */}
+      <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6">
+        <div className="flex items-center gap-3">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
+            Vee Network
+          </h1>
+          <div className="flex items-center gap-2">
+            <Badge variant="secondary" className="text-xs sm:text-sm">
+              TeamG
+            </Badge>
+            <Badge variant="outline" className="text-xs sm:text-sm">
+              demo-teamg
+            </Badge>
+          </div>
+        </div>
+        
+        {/* User Info - Mobile Optimized */}
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-sm">
+          <span className="text-gray-600 dark:text-gray-400">
+            Welcome, {user?.username || 'User'}
+          </span>
+          <div className="flex items-center gap-2">
+            <Button onClick={logout} variant="ghost" size="sm">
+              Logout
+            </Button>
+            <ThemeToggle />
+          </div>
+        </div>
+      </div>
+
+      {/* Navigation - Mobile Optimized */}
+      <nav className="flex flex-wrap items-center gap-2 sm:gap-4">
+        <Button variant={viewMode === 'grid' ? "default" : "ghost"} size="sm">
+          Grid View
+        </Button>
+        <Button variant={viewMode === 'bulk' ? "default" : "ghost"} size="sm">
+          List View
+        </Button>
+        <Button variant={viewMode === 'network' ? "default" : "ghost"} size="sm">
+          Network <Badge variant="secondary" className="ml-1">New</Badge>
+        </Button>
+        <Button variant={viewMode === 'insights' ? "default" : "ghost"} size="sm">
+          Analytics
+        </Button>
+      </nav>
+    </div>
+
+    {/* Action Buttons - Mobile Optimized */}
+    <div className="flex flex-wrap items-center gap-2 sm:gap-4 mt-4 sm:mt-6">
+      <Button variant="outline" size="sm">
+        <Upload className="w-4 h-4 mr-2" />
+        Import
+      </Button>
+      <Button variant="outline" size="sm">
+        <Download className="w-4 h-4 mr-2" />
+        Export ({contacts.length})
+      </Button>
+      <Button variant="outline" size="sm">
+        <Mic className="w-4 h-4 mr-2" />
+        Voice Demo
+      </Button>
+      <Button variant="outline" size="sm">
+        <Search className="w-4 h-4 mr-2" />
+        Enhanced Search Demo
+      </Button>
+      <Button size="sm">
+        <Plus className="w-4 h-4 mr-2" />
+        Add Contact
+      </Button>
+    </div>
+  </div>
+</header></div>
+        </div>
+
+        <!-- Analytics Header -->
+        <div class="code-section">
+            <h2 class="text-2xl font-semibold mb-4">📊 Analytics Header Component</h2>
+            <div class="code-block">
+// Analytics Card Component
+const AnalyticsCard: React.FC<AnalyticsCardProps> = ({ icon: Icon, count, label, gradient, delay = 0 }) => (
+  <div className="bg-white dark:bg-gray-800 rounded-xl p-4 sm:p-6 shadow-sm hover:shadow-xl transition-all duration-500 hover:-translate-y-1 border border-gray-100 dark:border-gray-700 group cursor-pointer">
+    <div className="flex items-center">
+      <div className="flex-shrink-0">
+        <div className={`w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-r ${gradient} rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 group-hover:rotate-3 transition-all duration-300 group-hover:shadow-xl`}>
+          <Icon className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+        </div>
+      </div>
+      <div className="ml-3 sm:ml-4 flex-1 min-w-0">
+        <div className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white transition-all duration-300 group-hover:scale-105">
+          <CountingNumber end={count} duration={1000} />
+        </div>
+        <div className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 font-medium truncate">
+          {label}
+        </div>
+      </div>
+      <ChevronRight className="hidden sm:block w-5 h-5 text-gray-400 opacity-0 group-hover:opacity-100 transform translate-x-0 group-hover:translate-x-1 transition-all duration-300" />
+    </div>
+    {/* Progress bar animation */}
+    <div className="mt-3 sm:mt-4 bg-gray-100 dark:bg-gray-700 rounded-full h-1 overflow-hidden">
+      <div className={`h-full bg-gradient-to-r ${gradient} transform scale-x-0 group-hover:scale-x-100 transition-transform duration-1000 origin-left`} />
+    </div>
+  </div>
+);
+
+// Premium Header Component
+const PremiumHeader: React.FC = () => {
+  return (
+    <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-900 border-b border-gray-200 dark:border-gray-700">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+          <AnalyticsCard icon={Users} count={analytics.totalContacts} label="Total Contacts" gradient="from-blue-500 to-blue-600" delay={0} />
+          <AnalyticsCard icon={Star} count={analytics.tier1} label="Tier 1 Contacts" gradient="from-pink-500 to-pink-600" delay={100} />
+          <AnalyticsCard icon={Target} count={analytics.tier2} label="Tier 2 Contacts" gradient="from-yellow-500 to-yellow-600" delay={200} />
+          <AnalyticsCard icon={Network} count={analytics.tier3} label="Tier 3 Contacts" gradient="from-green-500 to-green-600" delay={300} />
+        </div>
+      </div>
+    </div>
+  );
+};</div>
+        </div>
+
+        <!-- Search & Filters -->
+        <div class="code-section">
+            <h2 class="text-2xl font-semibold mb-4">🔍 Search & Filters Section</h2>
+            <div class="code-block">
+{/* Enhanced Premium Search Bar */}
+<div className="max-w-7xl mx-auto mt-8 mb-4 flex flex-wrap items-center gap-4 px-4 sm:px-6 lg:px-8">
+  <div className="flex-1 min-w-[250px]">
+    <div className="relative">
+      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 sm:w-5 sm:h-5" />
+      <input
+        type="text"
+        placeholder="Search contacts by name, email, location, or notes..."
+        value={searchQuery}
+        onChange={handleSearchChange}
+        className="w-full pl-10 pr-4 py-3 sm:py-4 text-sm sm:text-base bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 placeholder-gray-400 dark:placeholder-gray-500"
+      />
+    </div>
+  </div>
+  
+  {/* Compact Filter Controls */}
+  <div className="flex items-center gap-2">
+    <Select value={tierFilter} onValueChange={setTierFilter}>
+      <SelectTrigger className="w-24 h-9">
+        <SelectValue placeholder="Tier" />
+      </SelectTrigger>
+      <SelectContent>
+        <SelectItem value="all">All Tiers</SelectItem>
+        <SelectItem value="tier1">Tier 1</SelectItem>
+        <SelectItem value="tier2">Tier 2</SelectItem>
+        <SelectItem value="tier3">Tier 3</SelectItem>
+      </SelectContent>
+    </Select>
+    
+    <Select value={locationFilter} onValueChange={setLocationFilter}>
+      <SelectTrigger className="w-32 h-9">
+        <SelectValue placeholder="Location" />
+      </SelectTrigger>
+      <SelectContent>
+        <SelectItem value="all">All Locations</SelectItem>
+        {uniqueLocations.map(loc => (
+          <SelectItem key={loc} value={loc}>{loc}</SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+    
+    {/* Compact Advanced Filters Toggle */}
+    <Button
+      variant={showAdvancedFilters ? "default" : "outline"}
+      size="sm"
+      onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
+      className="h-9 px-3"
+    >
+      <Filter className="w-4 h-4 mr-1" />
+      {showAdvancedFilters ? "Hide" : "More"}
+    </Button>
+  </div>
+</div>
+
+{/* Compact Advanced Filters Section */}
+{showAdvancedFilters && (
+  <div className="max-w-7xl mx-auto mb-4 px-4 sm:px-6 lg:px-8">
+    <div className="bg-card border border-border rounded-lg p-4 shadow-sm">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {/* Personal Status Filters */}
+        <div>
+          <label className="block text-xs font-medium mb-2 text-foreground">Personal Status</label>
+          <div className="space-y-2">
+            <div className="flex items-center space-x-2">
+              <Checkbox id="hasKids" checked={activeFilters.hasKids === true} />
+              <label htmlFor="hasKids" className="text-xs text-muted-foreground">Has Kids</label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Checkbox id="isMarried" checked={activeFilters.isMarried === true} />
+              <label htmlFor="isMarried" className="text-xs text-muted-foreground">Is Married</label>
+            </div>
+          </div>
+        </div>
+        
+        {/* Interests Filter */}
+        <div>
+          <label className="block text-xs font-medium mb-2 text-foreground">Top Interests</label>
+          <div className="space-y-1 max-h-20 overflow-y-auto">
+            {allInterests.slice(0, 4).map((interest) => (
+              <div key={interest} className="flex items-center space-x-2">
+                <Checkbox id={interest} />
+                <label htmlFor={interest} className="text-xs text-muted-foreground">{interest}</label>
+              </div>
+            ))}
+          </div>
+        </div>
+        
+        {/* Contact Type Filter */}
+        <div>
+          <label className="block text-xs font-medium mb-2 text-foreground">Contact Type</label>
+          <Select value={activeFilters.contactType || 'all'}>
+            <SelectTrigger className="w-full h-8">
+              <SelectValue placeholder="All Types" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Types</SelectItem>
+              <SelectItem value="business">Business</SelectItem>
+              <SelectItem value="influencer">Influencer</SelectItem>
+              <SelectItem value="personal">Personal</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        
+        {/* Quick Actions */}
+        <div>
+          <label className="block text-xs font-medium mb-2 text-foreground">Actions</label>
+          <div className="space-y-1">
+            <Button variant="outline" size="sm" className="w-full h-8 text-xs">
+              <X className="w-3 h-3 mr-1" />
+              Clear All
+            </Button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+)}
+
+{/* Compact Search Analytics Section */}
+<div className="max-w-7xl mx-auto mb-4 px-4 sm:px-6 lg:px-8">
+  <div className="flex items-center justify-between bg-muted/50 rounded-lg p-3">
+    <div className="flex items-center gap-4 text-sm">
+      <span className="text-muted-foreground">Results: <span className="font-medium text-foreground">{filteredContacts.length}</span></span>
+      <span className="text-muted-foreground">Filters: <span className="font-medium text-foreground">3</span></span>
+      <span className="text-muted-foreground">Query: <span className="font-medium text-foreground">Active</span></span>
+    </div>
+    
+    {/* Recent Searches Display */}
+    <div className="flex items-center gap-2">
+      <span className="text-xs text-muted-foreground">Recent:</span>
+      <div className="flex gap-1">
+        <button className="px-2 py-1 text-xs bg-background border border-border rounded hover:bg-accent transition-colors">
+          john
+        </button>
+        <button className="px-2 py-1 text-xs bg-background border border-border rounded hover:bg-accent transition-colors">
+          new york
+        </button>
+        <button className="px-2 py-1 text-xs bg-background border border-border rounded hover:bg-accent transition-colors">
+          tier1
+        </button>
+      </div>
+    </div>
+  </div>
+</div></div>
+        </div>
+
+        <!-- Contact Grid -->
+        <div class="code-section">
+            <h2 class="text-2xl font-semibold mb-4">📱 Contact Grid Layout</h2>
+            <div class="code-block">
+{/* Main Content */}
+<main className="max-w-[95%] mx-auto px-2 sm:px-4 lg:px-6 py-8">
+  {/* Cache Performance Monitor */}
+  <div className="mb-6">
+    <CompactCacheMonitor />
+  </div>
+  
+  <div className="space-y-8">
+    {/* Contact Display - Grid View */}
+    {viewMode === 'grid' && (
+      loading ? (
+        <div className="text-center py-12">
+          <div className="text-gray-400">Loading contacts...</div>
+        </div>
+      ) : (
+        <div className="w-full max-w-full overflow-x-hidden">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-8 py-6">
+            {filteredContacts.map((contact, index) => (
+              <ContactCard
+                key={contact.id}
+                contact={contact}
+                onEdit={handleEditContact}
+                onDelete={() => handleDeleteContact(contact.id)}
+                isHighlighted={highlightedContactId === contact.id}
+                id={`contact-${contact.id}`}
+              />
+            ))}
+          </div>
+          <div className="w-full max-w-full">
+            <PaginationControls />
+          </div>
+        </div>
+      )
+    )}
+
+    {/* Other View Modes */}
+    {viewMode === 'bulk' && (
+      <BulkOperations
+        contacts={filteredContacts}
+        selectedContacts={selectedContacts}
+        onSelectionChange={setSelectedContacts}
+        onDeleteContacts={handleBulkDeleteContacts}
+        onUpdateContacts={handleBulkUpdateContacts}
+      />
+    )}
+
+    {viewMode === 'network' && (
+      <NetworkVisualization
+        contacts={contacts}
+        onContactSelect={handleManageConnections}
+        selectedContactId={selectedContact?.id}
+      />
+    )}
+
+    {viewMode === 'insights' && (
+      <NetworkInsights
+        contacts={contacts}
+        onContactSelect={handleManageConnections}
+        onAddConnection={handleAddConnection}
+      />
+    )}
+  </div>
+</main></div>
+        </div>
+
+        <!-- Contact Card Component -->
+        <div class="code-section">
+            <h2 class="text-2xl font-semibold mb-4">🎴 Contact Card Component</h2>
+            <div class="code-block">
+// Contact Card Component Structure
+const ContactCardComponent = ({ contact, onEdit, onDelete, isHighlighted, id }) => {
+  return (
+    <TooltipProvider>
+      <div
+        id={id}
+        className={`group relative transition-all duration-300 ease-out bg-white dark:bg-gray-800 rounded-xl shadow-sm hover:shadow-xl border border-gray-100 dark:border-gray-700 hover:border-gray-200 dark:hover:border-gray-600 ${
+          isHighlighted ? 'transform scale-102 ring-2 ring-blue-500/20 shadow-lg' : ''
+        }`}
+        data-contact-id={contact.id}
+      >
+        {/* Enhanced tier indicator with shimmer */}
+        <div className={`relative h-1.5 w-full bg-gradient-to-r transition-all duration-300 ease-out group-hover:h-2 rounded-t-xl ${
+          contact.tier === 'tier1' ? 'from-pink-400 via-pink-500 to-pink-600' :
+          contact.tier === 'tier2' ? 'from-yellow-400 via-yellow-500 to-yellow-600' :
+          'from-green-400 via-green-500 to-green-600'
+        }`}>
+          <div className="absolute inset-0 opacity-0 group-hover:opacity-40 transition-opacity duration-500 pointer-events-none">
+            <div className="h-full w-full bg-gradient-to-r from-transparent via-white/30 to-transparent animate-shimmer" />
+          </div>
+        </div>
+        
+        <div className="relative p-6">
+          {/* Enhanced Header section */}
+          <div className="flex items-start justify-between mb-4">
+            <div className="flex items-center space-x-3">
+              {/* Enhanced Avatar with status indicator */}
+              <div className="relative">
+                <div className={`relative w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-md transition-all duration-300 ease-out group-hover:scale-105 group-hover:shadow-lg ${
+                  contact.tier === 'tier1' ? 'bg-gradient-to-br from-pink-500 to-pink-600' :
+                  contact.tier === 'tier2' ? 'bg-gradient-to-br from-yellow-500 to-yellow-600' :
+                  'bg-gradient-to-br from-green-500 to-green-600'
+                }`}>
+                  {contact.name?.split(' ').map(n => n[0]).join('').toUpperCase() || 'N/A'}
+                </div>
+                {/* Status indicator */}
+                <div className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-white dark:border-gray-800 ${contactStatus.color}`} />
+              </div>
+              
+              <div className="flex-1 min-w-0">
+                <h3 className={`font-semibold text-gray-900 dark:text-white text-lg leading-tight truncate transition-all duration-300 ease-out group-hover:text-opacity-90 ${
+                  contact.tier === 'tier1' ? 'group-hover:text-pink-600' :
+                  contact.tier === 'tier2' ? 'group-hover:text-yellow-600' :
+                  'group-hover:text-green-600'
+                }`}>
+                  {contact.name || 'Unknown'}
+                </h3>
+                {contact.email && (
+                  <p className="text-sm text-gray-500 dark:text-gray-400 truncate mt-0.5 transition-colors duration-300 group-hover:text-gray-600">
+                    {contact.email}
+                  </p>
+                )}
+                {/* Contact type badge */}
+                <div className="flex items-center gap-2 mt-1">
+                  <Badge variant="outline" className="text-xs px-2 py-0.5">
+                    {getContactTypeIcon()}
+                    <span className="ml-1 capitalize">{contact.contactType || 'contact'}</span>
+                  </Badge>
+                  <Badge variant="outline" className="text-xs px-2 py-0.5">
+                    <Clock className="w-3 h-3 mr-1" />
+                    {contactStatus.label}
+                  </Badge>
+                </div>
+              </div>
+            </div>
+            
+            {/* Enhanced Tier badge with connection info */}
+            <div className="flex flex-col items-end gap-2">
+              <span className={`px-3 py-1.5 rounded-full text-xs font-bold shadow-sm transition-all duration-300 ease-out group-hover:scale-105 group-hover:shadow-md ${
+                contact.tier === 'tier1' ? 'bg-gradient-to-r from-pink-500 to-pink-600 text-white' :
+                contact.tier === 'tier2' ? 'bg-gradient-to-r from-yellow-500 to-yellow-600 text-white' :
+                'bg-gradient-to-r from-green-500 to-green-600 text-white'
+              }`}>
+                {contact.tier?.toUpperCase().replace('TIER', 'T') || 'T3'}
+              </span>
+            </div>
+          </div>
+          
+          {/* Contact Details */}
+          <div className="space-y-3">
+            {/* Location */}
+            {contact.location && (
+              <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                <MapPin className="w-4 h-4 flex-shrink-0" />
+                <span className="truncate">{contact.location}</span>
+              </div>
+            )}
+            
+            {/* Phone */}
+            {contact.phone && (
+              <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                <Phone className="w-4 h-4 flex-shrink-0" />
+                <span className="truncate">{contact.phone}</span>
+              </div>
+            )}
+            
+            {/* Interests */}
+            {contact.interests && contact.interests.length > 0 && (
+              <div className="flex flex-wrap gap-1">
+                {contact.interests.slice(0, 3).map((interest, index) => (
+                  <Badge key={index} variant="secondary" className="text-xs px-2 py-0.5">
+                    {interest}
+                  </Badge>
+                ))}
+                {contact.interests.length > 3 && (
+                  <Badge variant="outline" className="text-xs px-2 py-0.5">
+                    +{contact.interests.length - 3}
+                  </Badge>
+                )}
+              </div>
+            )}
+          </div>
+          
+          {/* Action Buttons */}
+          <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-100 dark:border-gray-700">
+            <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => onEdit(contact)}
+                className="text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
+              >
+                <Edit2 className="w-4 h-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => onDelete(contact)}
+                className="text-gray-600 hover:text-red-600 dark:text-gray-400 dark:hover:text-red-400"
+              >
+                <Trash2 className="w-4 h-4" />
+              </Button>
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => handleManageConnections(contact)}
+                className="text-gray-600 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400"
+              >
+                <Users className="w-4 h-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowMessageModal(true)}
+                className="text-gray-600 hover:text-green-600 dark:text-gray-400 dark:hover:text-green-400"
+              >
+                <MessageCircle className="w-4 h-4" />
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </TooltipProvider>
+  );
+};</div>
+        </div>
+
+        <!-- AI Chat Component -->
+        <div class="code-section">
+            <h2 class="text-2xl font-semibold mb-4">🤖 AI Chat Component</h2>
+            <div class="code-block">
+{/* AI Chat - Fixed Bottom */}
+<AIChat contacts={filteredContacts} />
+
+// AIChat Component Structure
+export function AIChat({ contacts }: { contacts: Contact[] }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [inputValue, setInputValue] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+
+  return (
+    <>
+      {/* Floating Chat Button */}
+      <button
+        onClick={() => setIsOpen(true)}
+        className="fixed bottom-6 right-6 w-14 h-14 bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center z-50"
+      >
+        <MessageCircle className="w-6 h-6" />
+      </button>
+
+      {/* Chat Modal */}
+      {isOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-end justify-end z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-t-xl shadow-2xl w-full max-w-md h-96 flex flex-col">
+            {/* Chat Header */}
+            <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
+              <h3 className="font-semibold text-gray-900 dark:text-white">AI Assistant</h3>
+              <button
+                onClick={() => setIsOpen(false)}
+                className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Chat Messages */}
+            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+              {messages.map((message, index) => (
+                <div
+                  key={index}
+                  className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                >
+                  <div
+                    className={`max-w-xs px-4 py-2 rounded-lg ${
+                      message.role === 'user'
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white'
+                    }`}
+                  >
+                    {message.content}
+                  </div>
+                </div>
+              ))}
+              {isLoading && (
+                <div className="flex justify-start">
+                  <div className="bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white px-4 py-2 rounded-lg">
+                    <div className="flex space-x-1">
+                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Chat Input */}
+            <div className="p-4 border-t border-gray-200 dark:border-gray-700">
+              <div className="flex space-x-2">
+                <input
+                  type="text"
+                  value={inputValue}
+                  onChange={(e) => setInputValue(e.target.value)}
+                  placeholder="Ask me anything about your network..."
+                  className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                />
+                <button
+                  onClick={handleSendMessage}
+                  disabled={!inputValue.trim() || isLoading}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <Send className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}</div>
+        </div>
+
+        <!-- Responsive Design Patterns -->
+        <div class="code-section">
+            <h2 class="text-2xl font-semibold mb-4">📱 Responsive Design Patterns</h2>
+            <div class="code-block">
+// Key Responsive Patterns Used
+
+// 1. Mobile-First Grid System
+<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-8">
+
+// 2. Responsive Spacing
+<div className="px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
+
+// 3. Responsive Typography
+<h1 className="text-2xl sm:text-3xl font-bold">
+
+// 4. Responsive Flexbox
+<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+
+// 5. Responsive Button Sizes
+<Button size="sm" className="text-sm">
+
+// 6. Responsive Icon Sizes
+<Search className="w-4 h-4 sm:w-5 sm:h-5" />
+
+// 7. Responsive Padding/Margins
+<div className="p-4 sm:p-6">
+
+// 8. Responsive Text Sizes
+<div className="text-xs sm:text-sm">
+
+// 9. Responsive Width Constraints
+<div className="w-24 h-9"> // Compact on mobile
+<div className="w-32 h-9"> // Slightly wider
+
+// 10. Responsive Visibility
+<ChevronRight className="hidden sm:block w-5 h-5" />
+
+// 11. Responsive Layout Changes
+<div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6">
+
+// 12. Responsive Container Widths
+<div className="max-w-7xl mx-auto">
+<div className="max-w-[95%] mx-auto">
+
+// 13. Responsive Gap Spacing
+<div className="gap-2 sm:gap-4">
+
+// 14. Responsive Border Radius
+<div className="rounded-xl">
+
+// 15. Responsive Shadow Effects
+<div className="shadow-sm hover:shadow-xl"></div>
+        </div>
+        </div>
+
+        <!-- Current Issues Summary -->
+        <div class="code-section">
+            <h2 class="text-2xl font-semibold mb-4">⚠️ Current Layout Issues</h2>
+            <div class="component-preview">
+                <h3 class="text-lg font-semibold mb-3">Mobile Header Problems:</h3>
+                <ul class="list-disc list-inside space-y-2 text-muted-foreground">
+                    <li><span class="highlight">Too many stacked elements</span> - Header takes up too much vertical space</li>
+                    <li><span class="highlight">Action buttons overflow</span> - Import, Export, Voice Demo, Search Demo, Add Contact</li>
+                    <li><span class="highlight">Navigation cramped</span> - Grid, List, Network, Analytics buttons</li>
+                    <li><span class="highlight">User info takes space</span> - Welcome message and logout button</li>
+                </ul>
+                
+                <h3 class="text-lg font-semibold mb-3 mt-6">Search & Filter Issues:</h3>
+                <ul class="list-disc list-inside space-y-2 text-muted-foreground">
+                    <li><span class="highlight">Advanced filters hidden</span> - Behind "More" button</li>
+                    <li><span class="highlight">Filter controls cramped</span> - Tier, Location, More buttons</li>
+                    <li><span class="highlight">Search analytics verbose</span> - Results, Filters, Query info</li>
+                </ul>
+                
+                <h3 class="text-lg font-semibold mb-3 mt-6">Contact Card Issues:</h3>
+                <ul class="list-disc list-inside space-y-2 text-muted-foreground">
+                    <li><span class="highlight">Too much information</span> - Email, location, phone, interests, badges</li>
+                    <li><span class="highlight">Small touch targets</span> - Edit, delete, connect, message buttons</li>
+                    <li><span class="highlight">No swipe actions</span> - Missing mobile gesture support</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Superdesign Recommendations -->
+        <div class="code-section">
+            <h2 class="text-2xl font-semibold mb-4">🎯 Superdesign Recommendations</h2>
+            <div class="component-preview">
+                <h3 class="text-lg font-semibold mb-3">Mobile Header Redesign:</h3>
+                <ul class="list-disc list-inside space-y-2 text-muted-foreground">
+                    <li><span class="highlight">Consolidate header elements</span> - Combine title, badges, user info</li>
+                    <li><span class="highlight">Move actions to bottom navigation</span> - Import, Export, Add Contact</li>
+                    <li><span class="highlight">Simplify navigation</span> - Use bottom tabs for view modes</li>
+                    <li><span class="highlight">Floating action button</span> - For primary actions</li>
+                </ul>
+                
+                <h3 class="text-lg font-semibold mb-3 mt-6">Search & Filter Improvements:</h3>
+                <ul class="list-disc list-inside space-y-2 text-muted-foreground">
+                    <li><span class="highlight">Full-width search bar</span> - Remove side filters</li>
+                    <li><span class="highlight">Filter sheet/drawer</span> - Slide up from bottom</li>
+                    <li><span class="highlight">Voice search integration</span> - Microphone button</li>
+                    <li><span class="highlight">Recent searches chips</span> - Horizontal scrollable</li>
+                </ul>
+                
+                <h3 class="text-lg font-semibold mb-3 mt-6">Contact Card Redesign:</h3>
+                <ul class="list-disc list-inside space-y-2 text-muted-foreground">
+                    <li><span class="highlight">Compact information display</span> - Name, tier, location only</li>
+                    <li><span class="highlight">Swipe actions</span> - Edit, delete, message</li>
+                    <li><span class="highlight">Larger touch targets</span> - 44px minimum</li>
+                    <li><span class="highlight">Quick action buttons</span> - Call, message, email</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Lucide icons
+        lucide.createIcons();
+    </script>
+</body>
+</html>

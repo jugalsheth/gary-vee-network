@@ -24,14 +24,19 @@ declare global {
   interface Window {
     SpeechRecognition: SpeechRecognition
     webkitSpeechRecognition: SpeechRecognition
+    webkitAudioContext: typeof AudioContext
   }
 }
 
 // Web Speech API types for TypeScript
 interface SpeechRecognition extends EventTarget {
   lang: string;
+  continuous: boolean;
+  interimResults: boolean;
+  state: string;
   onresult: ((event: SpeechRecognitionEvent) => void) | null;
   onerror: ((event: SpeechRecognitionErrorEvent) => void) | null;
+  onend: ((event: Event) => void) | null;
   start(): void;
   stop(): void;
   abort(): void;
@@ -57,6 +62,7 @@ export class VoiceRecorder {
   private audioChunks: Blob[] = []
   private startTime: number = 0
   private currentTranscript: string = ''
+  private isRecording: boolean = false
 
   constructor() {
     this.audioChunks = []
@@ -68,33 +74,65 @@ export class VoiceRecorder {
     onTranscriptUpdate: (transcript: string) => void
   ): Promise<void> {
     try {
-      // Get microphone access
-      this.stream = await navigator.mediaDevices.getUserMedia({ 
-        audio: {
-          echoCancellation: true,
-          noiseSuppression: true,
-          autoGainControl: true
-        } 
-      })
+      // Check if already recording
+      if (this.isRecording) {
+        console.warn('Already recording, stopping previous session')
+        await this.cleanup()
+      }
 
-      // Initialize MediaRecorder
-      this.mediaRecorder = new MediaRecorder(this.stream)
+      // Reset state
       this.audioChunks = []
       this.startTime = Date.now()
       this.currentTranscript = ''
+      this.isRecording = true
 
-      // Set up audio analysis for level monitoring
-      this.audioContext = new AudioContext()
-      this.analyser = this.audioContext.createAnalyser()
-      this.microphone = this.audioContext.createMediaStreamSource(this.stream)
-      this.microphone.connect(this.analyser)
-      
-      this.analyser.fftSize = 256
-      const bufferLength = this.analyser.frequencyBinCount
-      this.dataArray = new Uint8Array(bufferLength)
+      // Get microphone access with better error handling
+      try {
+        this.stream = await navigator.mediaDevices.getUserMedia({ 
+          audio: {
+            echoCancellation: true,
+            noiseSuppression: true,
+            autoGainControl: true
+          } 
+        })
+      } catch (mediaError) {
+        console.error('Microphone access error:', mediaError)
+        throw new Error('Microphone access denied. Please allow microphone permissions and try again.')
+      }
 
-      // Start speech recognition
-      this.startSpeechRecognition(onTranscriptUpdate)
+      // Initialize MediaRecorder with error handling
+      try {
+        this.mediaRecorder = new MediaRecorder(this.stream, {
+          mimeType: MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' : 'audio/mp4'
+        })
+      } catch (recorderError) {
+        console.error('MediaRecorder initialization error:', recorderError)
+        throw new Error('Audio recording not supported in this browser.')
+      }
+
+      // Set up audio analysis for level monitoring (optional)
+      try {
+        this.audioContext = new AudioContext()
+        this.analyser = this.audioContext.createAnalyser()
+        this.microphone = this.audioContext.createMediaStreamSource(this.stream)
+        this.microphone.connect(this.analyser)
+        
+        this.analyser.fftSize = 256
+        const bufferLength = this.analyser.frequencyBinCount
+        this.dataArray = new Uint8Array(bufferLength)
+      } catch (audioError) {
+        console.warn('Audio context not available, continuing without level monitoring')
+        this.analyser = null
+        this.dataArray = null
+      }
+
+      // Start speech recognition (optional - recording continues even if this fails)
+      try {
+        this.startSpeechRecognition(onTranscriptUpdate)
+      } catch (recognitionError) {
+        console.warn('Speech recognition failed, continuing with audio recording only')
+        this.recognition = null
+      }
 
       // Start audio recording
       this.mediaRecorder.ondataavailable = (event) => {
@@ -103,10 +141,20 @@ export class VoiceRecorder {
         }
       }
 
+      this.mediaRecorder.onerror = (event) => {
+        console.error('MediaRecorder error:', event)
+        onStateChange({ 
+          isRecording: false, 
+          error: 'Audio recording failed. Please try again.' 
+        })
+      }
+
       this.mediaRecorder.start(100) // Collect data every 100ms
 
-      // Start audio level monitoring
-      this.monitorAudioLevel(onStateChange)
+      // Start audio level monitoring (if available)
+      if (this.analyser) {
+        this.monitorAudioLevel(onStateChange)
+      }
 
       onStateChange({ 
         isRecording: true, 
@@ -118,9 +166,11 @@ export class VoiceRecorder {
 
     } catch (error) {
       console.error('Error starting recording:', error)
+      this.isRecording = false
+      await this.cleanup()
       onStateChange({ 
         isRecording: false, 
-        error: 'Failed to access microphone. Please check permissions.' 
+        error: error instanceof Error ? error.message : 'Failed to start recording. Please check microphone permissions.' 
       })
     }
   }
@@ -128,35 +178,70 @@ export class VoiceRecorder {
   // Stop recording
   async stopRecording(): Promise<{ audioBlob: Blob; transcript: string; duration: number }> {
     return new Promise((resolve, reject) => {
-      if (!this.mediaRecorder) {
+      if (!this.mediaRecorder || !this.isRecording) {
         reject(new Error('No active recording'))
         return
       }
 
       this.mediaRecorder.onstop = async () => {
         try {
-          // Stop speech recognition
+          // Stop speech recognition gracefully
           if (this.recognition) {
-            this.recognition.stop()
+            try {
+              if (this.recognition.state === 'recording') {
+                this.recognition.stop()
+              }
+            } catch (error) {
+              console.warn('Error stopping speech recognition:', error)
+            }
           }
 
           // Stop audio analysis
           if (this.stream) {
-            this.stream.getTracks().forEach(track => track.stop())
+            this.stream.getTracks().forEach(track => {
+              try {
+                track.stop()
+              } catch (error) {
+                console.warn('Error stopping audio track:', error)
+              }
+            })
           }
 
           // Create audio blob
-          const audioBlob = new Blob(this.audioChunks, { type: 'audio/wav' })
+          const audioBlob = new Blob(this.audioChunks, { type: 'audio/webm' })
           const duration = Date.now() - this.startTime
-          const transcript = this.currentTranscript || ''
+          
+          // Preserve transcript even if speech recognition aborted
+          const transcript = this.currentTranscript || 'No transcript available'
+          
+          console.log('Recording completed:', {
+            duration,
+            transcriptLength: transcript.length,
+            audioSize: audioBlob.size,
+            hasTranscript: !!transcript
+          })
 
+          this.isRecording = false
           resolve({ audioBlob, transcript, duration })
         } catch (error) {
+          this.isRecording = false
           reject(error)
         }
       }
 
-      this.mediaRecorder.stop()
+      this.mediaRecorder.onerror = (event) => {
+        console.error('MediaRecorder stop error:', event)
+        this.isRecording = false
+        reject(new Error('Failed to stop recording'))
+      }
+
+      try {
+        this.mediaRecorder.stop()
+      } catch (error) {
+        console.error('Error stopping MediaRecorder:', error)
+        this.isRecording = false
+        reject(error)
+      }
     })
   }
 
@@ -169,69 +254,166 @@ export class VoiceRecorder {
       return
     }
 
-    // Replace instantiation with a type-safe constructor cast
-    const SpeechRecognitionConstructor = (window.SpeechRecognition || window.webkitSpeechRecognition) as unknown as new () => SpeechRecognition;
-    this.recognition = new SpeechRecognitionConstructor();
-    this.recognition.continuous = true
-    this.recognition.interimResults = true
-    this.recognition.lang = 'en-US'
-
-    this.recognition.onresult = (event: SpeechRecognitionEvent) => {
-      let transcript = ''
-      for (let i = event.resultIndex; i < event.results.length; i++) {
-        transcript += event.results[i][0].transcript
+    try {
+      // Create new instance each time to avoid conflicts
+      this.recognition = new (SpeechRecognition as any)();
+      
+      if (!this.recognition) {
+        console.warn('Failed to create speech recognition instance')
+        return
       }
-      this.currentTranscript = transcript
-      onTranscriptUpdate(transcript)
-    }
 
-    this.recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
-      console.error('Speech recognition error:', event.error)
-    }
+      this.recognition.continuous = true
+      this.recognition.interimResults = true
+      this.recognition.lang = 'en-US'
 
-    this.recognition.start()
+      this.recognition.onresult = (event: SpeechRecognitionEvent) => {
+        try {
+          let transcript = ''
+          for (let i = event.resultIndex; i < event.results.length; i++) {
+            transcript += event.results[i][0].transcript
+          }
+          this.currentTranscript = transcript
+          onTranscriptUpdate(transcript)
+        } catch (error) {
+          console.error('Speech recognition result error:', error)
+        }
+      }
+
+      this.recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
+        // Handle different error types appropriately
+        switch (event.error) {
+          case 'aborted':
+            // 'aborted' is normal and expected - don't log as error
+            console.log('Speech recognition aborted (normal behavior)')
+            // Don't clear transcript - keep what we have so far
+            break
+          case 'not-allowed':
+            console.warn('Microphone permission denied')
+            break
+          case 'network':
+            console.warn('Network error in speech recognition')
+            break
+          case 'no-speech':
+            console.log('No speech detected (normal behavior)')
+            break
+          default:
+            console.warn('Speech recognition error:', event.error)
+        }
+        
+        // Don't stop recording for any speech recognition errors
+        // Audio recording should continue regardless
+      }
+
+      this.recognition.onend = (event: Event) => {
+        console.log('Speech recognition ended')
+        
+        // Try to restart speech recognition if we're still recording
+        // This helps capture more of the transcript
+        if (this.isRecording && this.recognition) {
+          setTimeout(() => {
+            try {
+              if (this.isRecording && this.recognition) {
+                console.log('Restarting speech recognition...')
+                this.recognition.start()
+              }
+            } catch (error) {
+              console.warn('Failed to restart speech recognition:', error)
+            }
+          }, 100) // Small delay to avoid conflicts
+        }
+      }
+
+      this.recognition.start()
+    } catch (error) {
+      console.error('Error starting speech recognition:', error)
+      // Continue without speech recognition
+      this.recognition = null
+    }
   }
 
   // Monitor audio levels
   private monitorAudioLevel(onStateChange: (state: Partial<RecordingState>) => void): void {
     const updateLevel = () => {
-      if (!this.analyser || !this.dataArray || this.mediaRecorder?.state !== 'recording') {
+      if (!this.analyser || !this.dataArray || !this.isRecording) {
         return
       }
 
-      this.analyser.getByteFrequencyData(this.dataArray)
-      
-      // Calculate average audio level
-      const average = this.dataArray.reduce((a, b) => a + b) / this.dataArray.length
-      const normalizedLevel = Math.min(average / 128, 1) // Normalize to 0-1
+      try {
+        this.analyser.getByteFrequencyData(this.dataArray)
+        
+        // Calculate average audio level
+        const average = this.dataArray.reduce((a, b) => a + b) / this.dataArray.length
+        const normalizedLevel = Math.min(average / 128, 1) // Normalize to 0-1
 
-      onStateChange({ 
-        audioLevel: normalizedLevel,
-        duration: Date.now() - this.startTime
-      })
+        onStateChange({ 
+          audioLevel: normalizedLevel,
+          duration: Date.now() - this.startTime
+        })
 
-      requestAnimationFrame(updateLevel)
+        if (this.isRecording) {
+          requestAnimationFrame(updateLevel)
+        }
+      } catch (error) {
+        console.warn('Audio level monitoring error:', error)
+        // Stop monitoring on error
+      }
     }
 
     updateLevel()
   }
 
   // Check if currently recording
-  get isRecording(): boolean {
-    return this.mediaRecorder?.state === 'recording'
+  get isCurrentlyRecording(): boolean {
+    return this.isRecording && this.mediaRecorder?.state === 'recording'
   }
 
   // Clean up resources
-  cleanup(): void {
-    if (this.stream) {
-      this.stream.getTracks().forEach(track => track.stop())
+  async cleanup(): Promise<void> {
+    this.isRecording = false
+
+    try {
+      if (this.stream) {
+        this.stream.getTracks().forEach(track => {
+          try {
+            track.stop()
+          } catch (error) {
+            console.warn('Error stopping track:', error)
+          }
+        })
+        this.stream = null
+      }
+    } catch (error) {
+      console.warn('Error cleaning up stream:', error)
     }
-    if (this.audioContext) {
-      this.audioContext.close()
+
+    try {
+      if (this.audioContext && this.audioContext.state !== 'closed') {
+        await this.audioContext.close()
+        this.audioContext = null
+      }
+    } catch (error) {
+      console.warn('Error closing audio context:', error)
     }
-    if (this.recognition) {
-      this.recognition.stop()
+
+    try {
+      if (this.recognition) {
+        // Don't call stop() if it's already stopped to avoid conflicts
+        if (this.recognition.state === 'recording') {
+          this.recognition.stop()
+        }
+        this.recognition = null
+      }
+    } catch (error) {
+      console.warn('Error stopping recognition:', error)
     }
+
+    this.mediaRecorder = null
+    this.analyser = null
+    this.microphone = null
+    this.dataArray = null
+    this.audioChunks = []
+    this.currentTranscript = ''
   }
 }
 
@@ -361,9 +543,79 @@ export const formatDate = (date: Date): string => {
 
 // Check browser support
 export const isVoiceRecordingSupported = (): boolean => {
-  return !!(navigator.mediaDevices && 
-           'getUserMedia' in navigator.mediaDevices && 
-           ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window))
+  // Check for MediaRecorder support
+  if (!window.MediaRecorder) {
+    console.warn('MediaRecorder not supported')
+    return false
+  }
+
+  // Check for getUserMedia support
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    console.warn('getUserMedia not supported')
+    return false
+  }
+
+  // Check for Web Speech API support
+  if (!window.SpeechRecognition && !window.webkitSpeechRecognition) {
+    console.warn('Speech Recognition not supported')
+    return false
+  }
+
+  // Check for AudioContext support
+  if (!window.AudioContext && !window.webkitAudioContext) {
+    console.warn('AudioContext not supported')
+    return false
+  }
+
+  return true
+}
+
+export const getBrowserCompatibilityInfo = (): {
+  mediaRecorder: boolean
+  getUserMedia: boolean
+  speechRecognition: boolean
+  audioContext: boolean
+  overall: boolean
+} => {
+  const mediaRecorder = !!window.MediaRecorder
+  const getUserMedia = !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia)
+  const speechRecognition = !!(window.SpeechRecognition || window.webkitSpeechRecognition)
+  const audioContext = !!(window.AudioContext || window.webkitAudioContext)
+  
+  return {
+    mediaRecorder,
+    getUserMedia,
+    speechRecognition,
+    audioContext,
+    overall: mediaRecorder && getUserMedia && speechRecognition && audioContext
+  }
+}
+
+export const getBrowserRecommendations = (): string[] => {
+  const compatibility = getBrowserCompatibilityInfo()
+  const recommendations: string[] = []
+
+  if (!compatibility.mediaRecorder) {
+    recommendations.push('Your browser does not support audio recording. Try using Chrome, Firefox, or Safari.')
+  }
+
+  if (!compatibility.getUserMedia) {
+    recommendations.push('Your browser does not support microphone access. Try using a modern browser.')
+  }
+
+  if (!compatibility.speechRecognition) {
+    recommendations.push('Your browser does not support speech recognition. Try using Chrome or Edge.')
+  }
+
+  if (!compatibility.audioContext) {
+    recommendations.push('Your browser does not support audio processing. Try using a modern browser.')
+  }
+
+  if (recommendations.length === 0) {
+    recommendations.push('Your browser should support voice recording. Make sure to allow microphone permissions.')
+  }
+
+  return recommendations
 }
 
 // Snowflake Schema for Voice Notes

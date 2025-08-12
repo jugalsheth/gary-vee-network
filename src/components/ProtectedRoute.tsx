@@ -14,11 +14,13 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
   const router = useRouter()
 
   useEffect(() => {
-    if (!isLoading && !user) {
+    // Only redirect if we're not already on the login page and user is not authenticated
+    if (!isLoading && !user && window.location.pathname !== '/login') {
       router.push('/login')
     }
   }, [user, isLoading, router])
 
+  // Show loading while checking authentication
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center">
@@ -37,9 +39,11 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
     )
   }
 
+  // If not authenticated, show login component
   if (!user) {
     return <LoginPage />
   }
 
+  // User is authenticated, show protected content
   return <>{children}</>
 } 

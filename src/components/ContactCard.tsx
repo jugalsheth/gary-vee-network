@@ -16,11 +16,13 @@ export interface ContactCardProps {
   onEdit?: (contact: Contact) => void
   onDelete?: (contact: Contact) => void
   onManageConnections?: (contact: Contact) => void
+  onNavigate?: (contact: Contact) => void
+  onViewContact?: (contact: Contact) => void
   isHighlighted?: boolean;
   id?: string;
 }
 
-const ContactCardComponent = ({ contact, allContacts, onEdit, onDelete, onManageConnections, isHighlighted, id }: ContactCardProps) => {
+const ContactCardComponent = ({ contact, allContacts, onEdit, onDelete, onManageConnections, onNavigate, onViewContact, isHighlighted, id }: ContactCardProps) => {
   const [showQuickActions, setShowQuickActions] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showConnectionModal, setShowConnectionModal] = useState(false);
@@ -120,12 +122,13 @@ const ContactCardComponent = ({ contact, allContacts, onEdit, onDelete, onManage
     <TooltipProvider>
       <div
         id={id}
-        className={`group relative transition-all duration-300 ease-out bg-white dark:bg-gray-800 rounded-xl shadow-sm hover:shadow-xl border border-gray-100 dark:border-gray-700 hover:border-gray-200 dark:hover:border-gray-600 ${
+        className={`group relative transition-all duration-300 ease-out bg-white dark:bg-gray-800 rounded-xl shadow-sm hover:shadow-xl border border-gray-100 dark:border-gray-700 hover:border-gray-200 dark:hover:border-gray-600 cursor-pointer ${
           isHighlighted ? 'transform scale-102 ring-2 ring-blue-500/20 shadow-lg' : ''
         }`}
         data-contact-id={contact.id}
         onMouseEnter={() => setShowQuickActions(true)}
         onMouseLeave={() => setShowQuickActions(false)}
+        // Removed onClick handler to make card static
       >
         {/* Enhanced tier indicator with shimmer */}
         <div className={`relative h-1.5 w-full bg-gradient-to-r transition-all duration-300 ease-out group-hover:h-2 rounded-t-xl ${
@@ -240,7 +243,19 @@ const ContactCardComponent = ({ contact, allContacts, onEdit, onDelete, onManage
                 {contact.notes}
               </p>
               {contact.notes.length > 100 && (
-                <button className="text-xs text-blue-500 hover:text-blue-600 mt-1 font-medium">
+                <button 
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    // Toggle notes expansion
+                    const notesElement = e.currentTarget.previousElementSibling;
+                    if (notesElement) {
+                      notesElement.classList.toggle('line-clamp-2');
+                      e.currentTarget.textContent = notesElement.classList.contains('line-clamp-2') ? 'Read more...' : 'Show less';
+                    }
+                  }}
+                  className="text-xs text-blue-500 hover:text-blue-600 mt-1 font-medium transition-colors"
+                >
                   Read more...
                 </button>
               )}
@@ -328,6 +343,20 @@ const ContactCardComponent = ({ contact, allContacts, onEdit, onDelete, onManage
               {/* Activity indicator */}
               <div className={`w-2 h-2 rounded-full ${contactStatus.color} opacity-60`} />
             </div>
+            
+            {/* View Contact Button */}
+            {onViewContact && (
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  onViewContact(contact);
+                }}
+                className="text-xs text-blue-500 hover:text-blue-600 font-medium transition-colors"
+              >
+                View Contact →
+              </button>
+            )}
           </div>
         </div>
       </div>

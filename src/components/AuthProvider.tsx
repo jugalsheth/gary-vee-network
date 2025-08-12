@@ -44,6 +44,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (response.ok && data.success) {
         setUser(data.user)
         saveSession(data.token, data.user)
+        
+        // Set cookie for server-side authentication
+        if (typeof window !== 'undefined') {
+          document.cookie = `auth_token=${data.token}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax`;
+        }
+        
         showSuccessToast.loginSuccess(data.user.username, data.user.team)
         return { success: true }
       } else {
@@ -59,6 +65,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const logout = () => {
     setUser(null)
     clearSession()
+    
+    // Clear cookie
+    if (typeof window !== 'undefined') {
+      document.cookie = 'auth_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+    }
     
     // Show logout success toast
     showSuccessToast.logoutSuccess()

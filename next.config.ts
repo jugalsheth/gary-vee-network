@@ -12,7 +12,8 @@ const nextConfig: NextConfig = {
     ignoreDuringBuilds: true,
   },
   experimental: {
-    // turbo config removed as per instructions
+    // Enable server actions
+    serverActions: true,
   },
   images: {
     domains: ['localhost'],
@@ -43,6 +44,10 @@ const nextConfig: NextConfig = {
     }
     return config;
   },
+  // Vercel specific optimizations
+  poweredByHeader: false,
+  compress: true,
+  generateEtags: false,
 };
 
 module.exports = nextConfig;

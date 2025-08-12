@@ -1,0 +1,38 @@
+import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
+
+export function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+  
+  // Skip middleware for API routes, static files, and authentication endpoints
+  if (pathname.startsWith('/api/') || 
+      pathname.startsWith('/_next/') || 
+      pathname.startsWith('/favicon.ico') ||
+      pathname.startsWith('/login') ||
+      pathname.includes('.')) {
+    return NextResponse.next();
+  }
+
+  // Check if user has authentication token in cookies
+  const authToken = request.cookies.get('auth_token')?.value;
+  
+  // If no auth token and not on login page, redirect to login
+  if (!authToken && pathname !== '/login') {
+    const loginUrl = new URL('/login', request.url);
+    return NextResponse.redirect(loginUrl);
+  }
+
+  // If user has auth token and is on login page, redirect to home
+  if (authToken && pathname === '/login') {
+    const homeUrl = new URL('/', request.url);
+    return NextResponse.redirect(homeUrl);
+  }
+
+  return NextResponse.next();
+}
+
+export const config = {
+  matcher: [
+    '/((?!api|_next/static|_next/image|favicon.ico).*)',
+  ],
+};

@@ -1,7 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { demoUsers, verifyPassword, generateToken, type LoginCredentials } from '@/lib/auth'
+import { authLimiter } from '@/lib/rateLimit'
 
 export async function POST(request: NextRequest) {
+  // Apply rate limiting
+  try {
+    await new Promise((resolve, reject) => {
+      authLimiter(request as any, {
+        status: (code: number) => ({ json: (data: any) => reject(new Error(JSON.stringify(data))) }),
+        json: (data: any) => reject(new Error(JSON.stringify(data)))
+      } as any, resolve);
+    });
+  } catch (error) {
+    return NextResponse.json(JSON.parse(error.message), { status: 429 });
+  }
+
   try {
     const credentials: LoginCredentials = await request.json()
     const { username, password, team } = credentials

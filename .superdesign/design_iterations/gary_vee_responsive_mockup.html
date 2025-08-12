@@ -1,0 +1,1030 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gary Vee Network - Responsive UI Toggle</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        :root {
+            --background: oklch(0.9900 0 0);
+            --foreground: oklch(0 0 0);
+            --card: oklch(1 0 0);
+            --card-foreground: oklch(0 0 0);
+            --primary: oklch(0.5555 0 0);
+            --primary-foreground: oklch(0.9851 0 0);
+            --secondary: oklch(0.9702 0 0);
+            --secondary-foreground: oklch(0.2046 0 0);
+            --muted: oklch(0.9702 0 0);
+            --muted-foreground: oklch(0.5486 0 0);
+            --accent: oklch(0.9702 0 0);
+            --accent-foreground: oklch(0.2046 0 0);
+            --border: oklch(0.9219 0 0);
+            --radius: 0.5rem;
+            --font-sans: "Inter", sans-serif;
+        }
+
+        body {
+            font-family: var(--font-sans);
+            background: var(--background);
+            color: var(--foreground);
+            margin: 0;
+            padding: 0;
+        }
+
+        .demo-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .mode-toggle {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 2rem;
+            gap: 1rem;
+        }
+
+        .toggle-btn {
+            padding: 0.75rem 1.5rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            background: white;
+            color: #374151;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .toggle-btn.active {
+            background: #3b82f6;
+            color: white;
+            border-color: #3b82f6;
+        }
+
+        .toggle-btn:hover {
+            border-color: #3b82f6;
+        }
+
+        .ui-frame {
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+            transition: all 0.3s ease;
+        }
+
+        .desktop-frame {
+            width: 100%;
+            height: 800px;
+        }
+
+        .mobile-frame {
+            width: 375px;
+            height: 667px;
+            margin: 0 auto;
+        }
+
+        .ui-content {
+            height: 100%;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Responsive Header */
+        .responsive-header {
+            background: linear-gradient(to right, #dbeafe, #e0e7ff);
+            border-bottom: 1px solid #e2e8f0;
+            transition: all 0.3s ease;
+        }
+
+        .desktop-header {
+            padding: 1.5rem 2rem;
+        }
+
+        .mobile-header {
+            padding: 0.75rem 1rem;
+        }
+
+        .header-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .header-title {
+            font-weight: 700;
+            color: #111827;
+        }
+
+        .desktop-title { font-size: 1.875rem; }
+        .mobile-title { font-size: 1.25rem; }
+
+        .header-badges {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .header-badge {
+            padding: 0.25rem 0.75rem;
+            background: #dbeafe;
+            color: #1e40af;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .desktop-badge { font-size: 0.875rem; }
+        .mobile-badge { font-size: 0.75rem; }
+
+        .header-center {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .desktop-nav { gap: 1rem; }
+        .mobile-nav { gap: 0.25rem; }
+
+        .nav-btn {
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: none;
+            background: transparent;
+        }
+
+        .desktop-nav-btn { 
+            padding: 0.75rem 1.5rem; 
+            font-size: 0.875rem;
+        }
+
+        .mobile-nav-btn { 
+            padding: 0.5rem 0.75rem; 
+            font-size: 0.75rem;
+        }
+
+        .nav-btn.active {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .nav-btn:not(.active) {
+            color: #6b7280;
+        }
+
+        .nav-btn:hover:not(.active) {
+            background: #f3f4f6;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .desktop-actions { gap: 1rem; }
+        .mobile-actions { gap: 0.5rem; }
+
+        .action-btn {
+            padding: 0.5rem;
+            border-radius: 6px;
+            color: #6b7280;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: none;
+            background: transparent;
+        }
+
+        .desktop-action-btn { 
+            padding: 0.75rem 1rem; 
+            font-size: 0.875rem;
+        }
+
+        .mobile-action-btn { 
+            padding: 0.5rem; 
+            font-size: 0.75rem;
+        }
+
+        .action-btn:hover {
+            background: #f3f4f6;
+            color: #374151;
+        }
+
+        .primary-btn {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .primary-btn:hover {
+            background: #2563eb;
+        }
+
+        /* Responsive Analytics */
+        .responsive-analytics {
+            background: white;
+            border-bottom: 1px solid #e2e8f0;
+            transition: all 0.3s ease;
+        }
+
+        .desktop-analytics {
+            padding: 1.5rem 2rem;
+        }
+
+        .mobile-analytics {
+            padding: 0 1rem 1rem;
+        }
+
+        .analytics-grid {
+            display: grid;
+            gap: 1rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .desktop-analytics-grid {
+            grid-template-columns: repeat(4, 1fr);
+        }
+
+        .mobile-analytics-grid {
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0.5rem;
+        }
+
+        .analytics-card {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 1rem;
+            text-align: center;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            transition: all 0.2s ease;
+        }
+
+        .desktop-analytics-card { padding: 1.5rem; }
+        .mobile-analytics-card { padding: 0.75rem; }
+
+        .analytics-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .analytics-number {
+            font-weight: 700;
+            color: #111827;
+            margin-bottom: 0.5rem;
+        }
+
+        .desktop-analytics-number { font-size: 2rem; }
+        .mobile-analytics-number { font-size: 1.25rem; }
+
+        .analytics-label {
+            color: #6b7280;
+            font-weight: 500;
+        }
+
+        .desktop-analytics-label { font-size: 0.875rem; }
+        .mobile-analytics-label { font-size: 0.75rem; }
+
+        /* Responsive Search */
+        .responsive-search {
+            padding: 1rem 2rem;
+            background: #f8fafc;
+            transition: all 0.3s ease;
+        }
+
+        .mobile-search {
+            padding: 1rem;
+        }
+
+        .search-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .desktop-search-container { gap: 1rem; }
+        .mobile-search-container { 
+            gap: 0.5rem; 
+            flex-direction: column;
+        }
+
+        .search-bar {
+            flex: 1;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        .desktop-search-bar { padding: 1rem 1.5rem; }
+        .mobile-search-bar { padding: 0.75rem 1rem; }
+
+        .search-input {
+            flex: 1;
+            border: none;
+            outline: none;
+            color: #374151;
+        }
+
+        .desktop-search-input { font-size: 1rem; }
+        .mobile-search-input { font-size: 1rem; }
+
+        .search-input::placeholder {
+            color: #9ca3af;
+        }
+
+        .filter-controls {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .desktop-filter-controls { gap: 1rem; }
+        .mobile-filter-controls { gap: 0.5rem; }
+
+        .filter-btn {
+            padding: 0.5rem 1rem;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            color: #374151;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .desktop-filter-btn { padding: 0.75rem 1.5rem; }
+        .mobile-filter-btn { padding: 0.5rem 0.75rem; }
+
+        .filter-btn:hover {
+            background: #f3f4f6;
+            border-color: #d1d5db;
+        }
+
+        /* Responsive Content */
+        .responsive-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1rem 2rem;
+            transition: all 0.3s ease;
+        }
+
+        .mobile-content {
+            padding: 1rem;
+            padding-bottom: 5rem; /* Space for bottom nav */
+        }
+
+        .content-grid {
+            display: grid;
+            gap: 1rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .desktop-content-grid {
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .mobile-content-grid {
+            grid-template-columns: 1fr;
+            gap: 0.75rem;
+        }
+
+        .contact-card {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 1rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            transition: all 0.2s ease;
+        }
+
+        .desktop-contact-card { padding: 1.5rem; }
+        .mobile-contact-card { padding: 1rem; }
+
+        .contact-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .contact-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .contact-avatar {
+            width: 3rem;
+            height: 3rem;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #ec4899, #be185d);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 1rem;
+        }
+
+        .desktop-contact-avatar { width: 3.5rem; height: 3.5rem; }
+        .mobile-contact-avatar { width: 3rem; height: 3rem; }
+
+        .contact-info {
+            flex: 1;
+        }
+
+        .contact-name {
+            font-weight: 600;
+            color: #111827;
+            margin-bottom: 0.25rem;
+        }
+
+        .desktop-contact-name { font-size: 1.125rem; }
+        .mobile-contact-name { font-size: 1rem; }
+
+        .contact-details {
+            color: #6b7280;
+            font-size: 0.875rem;
+        }
+
+        .contact-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .desktop-contact-actions { gap: 0.75rem; }
+        .mobile-contact-actions { gap: 0.25rem; }
+
+        .contact-action-btn {
+            padding: 0.5rem;
+            border-radius: 6px;
+            color: #6b7280;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: none;
+            background: transparent;
+        }
+
+        .desktop-contact-action-btn { padding: 0.75rem; }
+        .mobile-contact-action-btn { padding: 0.5rem; }
+
+        .contact-action-btn:hover {
+            background: #f3f4f6;
+            color: #374151;
+        }
+
+        /* Mobile Bottom Navigation */
+        .mobile-bottom-nav {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            border-top: 1px solid #e2e8f0;
+            padding: 0.5rem 0;
+            display: flex;
+            justify-content: space-around;
+        }
+
+        .mobile-nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 0.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .mobile-nav-item.active {
+            background: #f3f4f6;
+            color: #3b82f6;
+        }
+
+        .mobile-nav-item:not(.active) {
+            color: #6b7280;
+        }
+
+        .mobile-nav-item:hover {
+            background: #f9fafb;
+        }
+
+        /* Mobile Floating Action Button */
+        .mobile-fab {
+            position: absolute;
+            bottom: 5rem;
+            right: 1rem;
+            width: 3.5rem;
+            height: 3.5rem;
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .mobile-fab:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 16px rgba(59, 130, 246, 0.6);
+        }
+
+        /* Responsive Utilities */
+        .desktop-only { display: block; }
+        .mobile-only { display: none; }
+
+        .mobile-mode .desktop-only { display: none; }
+        .mobile-mode .mobile-only { display: block; }
+
+        .mobile-mode .ui-frame {
+            width: 375px;
+            height: 667px;
+            margin: 0 auto;
+        }
+
+        .mobile-mode .responsive-header {
+            padding: 0.75rem 1rem;
+        }
+
+        .mobile-mode .responsive-analytics {
+            padding: 0 1rem 1rem;
+        }
+
+        .mobile-mode .responsive-search {
+            padding: 1rem;
+        }
+
+        .mobile-mode .responsive-content {
+            padding: 1rem;
+            padding-bottom: 5rem;
+        }
+
+        .mobile-mode .content-grid {
+            grid-template-columns: 1fr;
+            gap: 0.75rem;
+        }
+
+        .mobile-mode .contact-card {
+            padding: 1rem;
+        }
+
+        .mobile-mode .contact-avatar {
+            width: 3rem;
+            height: 3rem;
+        }
+
+        .mobile-mode .contact-name {
+            font-size: 1rem;
+        }
+
+        .mobile-mode .contact-actions {
+            gap: 0.25rem;
+        }
+
+        .mobile-mode .contact-action-btn {
+            padding: 0.5rem;
+        }
+
+        .mobile-mode .analytics-grid {
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0.5rem;
+        }
+
+        .mobile-mode .analytics-card {
+            padding: 0.75rem;
+        }
+
+        .mobile-mode .analytics-number {
+            font-size: 1.25rem;
+        }
+
+        .mobile-mode .analytics-label {
+            font-size: 0.75rem;
+        }
+
+        .mobile-mode .search-container {
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .mobile-mode .search-bar {
+            padding: 0.75rem 1rem;
+        }
+
+        .mobile-mode .filter-controls {
+            gap: 0.5rem;
+        }
+
+        .mobile-mode .filter-btn {
+            padding: 0.5rem 0.75rem;
+        }
+
+        .mobile-mode .header-content {
+            flex-direction: column;
+            gap: 0.75rem;
+            align-items: stretch;
+        }
+
+        .mobile-mode .header-left {
+            justify-content: space-between;
+        }
+
+        .mobile-mode .header-center {
+            justify-content: center;
+        }
+
+        .mobile-mode .header-right {
+            justify-content: center;
+        }
+
+        .mobile-mode .nav-btn {
+            padding: 0.5rem 0.75rem;
+            font-size: 0.75rem;
+        }
+
+        .mobile-mode .action-btn {
+            padding: 0.5rem;
+            font-size: 0.75rem;
+        }
+
+        .mobile-mode .header-title {
+            font-size: 1.25rem;
+        }
+
+        .mobile-mode .header-badge {
+            font-size: 0.75rem;
+        }
+
+        .info-panel {
+            background: white;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .info-panel h2 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: #111827;
+        }
+
+        .info-panel p {
+            color: #6b7280;
+            line-height: 1.6;
+            margin-bottom: 1rem;
+        }
+
+        .feature-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .feature-item {
+            padding: 1rem;
+            background: #f8fafc;
+            border-radius: 6px;
+            border-left: 4px solid #3b82f6;
+        }
+
+        .feature-item h3 {
+            font-weight: 600;
+            color: #111827;
+            margin-bottom: 0.5rem;
+        }
+
+        .feature-item p {
+            color: #6b7280;
+            font-size: 0.875rem;
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="demo-container">
+        <div class="info-panel">
+            <h2>Responsive UI Toggle Demo</h2>
+            <p>This demo shows how your Gary Vee Network UI can seamlessly adapt between desktop and mobile modes without disrupting your beautiful desktop design. The same components automatically adjust their layout, spacing, and interactions based on screen size.</p>
+            
+            <div class="feature-list">
+                <div class="feature-item">
+                    <h3>🖥️ Desktop Mode</h3>
+                    <p>Full-width layout with spacious design, large touch targets, and comprehensive navigation in the header.</p>
+                </div>
+                <div class="feature-item">
+                    <h3>📱 Mobile Mode</h3>
+                    <p>Compact layout with bottom navigation, floating action button, and optimized touch interactions.</p>
+                </div>
+                <div class="feature-item">
+                    <h3>🔄 Seamless Transition</h3>
+                    <p>Same components, same functionality, just different layouts that automatically adapt to screen size.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="mode-toggle">
+            <button class="toggle-btn active" onclick="switchMode('desktop')">
+                <i data-lucide="monitor" class="w-4 h-4 mr-2"></i>
+                Desktop Mode
+            </button>
+            <button class="toggle-btn" onclick="switchMode('mobile')">
+                <i data-lucide="smartphone" class="w-4 h-4 mr-2"></i>
+                Mobile Mode
+            </button>
+        </div>
+
+        <div class="ui-frame desktop-frame" id="uiFrame">
+            <div class="ui-content">
+                <!-- Responsive Header -->
+                <div class="responsive-header desktop-header">
+                    <div class="header-content">
+                        <div class="header-left">
+                            <h1 class="header-title desktop-title">Vee Network</h1>
+                            <div class="header-badges">
+                                <span class="header-badge desktop-badge">TeamG</span>
+                                <span class="header-badge desktop-badge">demo-teamg</span>
+                            </div>
+                        </div>
+                        
+                        <div class="header-center desktop-nav">
+                            <button class="nav-btn desktop-nav-btn active">Grid View</button>
+                            <button class="nav-btn desktop-nav-btn">List View</button>
+                            <button class="nav-btn desktop-nav-btn">Network</button>
+                            <button class="nav-btn desktop-nav-btn">Analytics</button>
+                        </div>
+                        
+                        <div class="header-right desktop-actions">
+                            <button class="action-btn desktop-action-btn">
+                                <i data-lucide="upload" class="w-4 h-4 mr-2"></i>
+                                Import
+                            </button>
+                            <button class="action-btn desktop-action-btn">
+                                <i data-lucide="download" class="w-4 h-4 mr-2"></i>
+                                Export
+                            </button>
+                            <button class="action-btn desktop-action-btn">
+                                <i data-lucide="mic" class="w-4 h-4 mr-2"></i>
+                                Voice
+                            </button>
+                            <button class="action-btn desktop-action-btn primary-btn">
+                                <i data-lucide="plus" class="w-4 h-4 mr-2"></i>
+                                Add Contact
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Responsive Analytics -->
+                <div class="responsive-analytics desktop-analytics">
+                    <div class="analytics-grid desktop-analytics-grid">
+                        <div class="analytics-card desktop-analytics-card">
+                            <div class="analytics-number desktop-analytics-number">1,234</div>
+                            <div class="analytics-label desktop-analytics-label">Total Contacts</div>
+                        </div>
+                        <div class="analytics-card desktop-analytics-card">
+                            <div class="analytics-number desktop-analytics-number">456</div>
+                            <div class="analytics-label desktop-analytics-label">Tier 1</div>
+                        </div>
+                        <div class="analytics-card desktop-analytics-card">
+                            <div class="analytics-number desktop-analytics-number">789</div>
+                            <div class="analytics-label desktop-analytics-label">Tier 2</div>
+                        </div>
+                        <div class="analytics-card desktop-analytics-card">
+                            <div class="analytics-number desktop-analytics-number">123</div>
+                            <div class="analytics-label desktop-analytics-label">Tier 3</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Responsive Search -->
+                <div class="responsive-search desktop-search">
+                    <div class="search-container desktop-search-container">
+                        <div class="search-bar desktop-search-bar">
+                            <i data-lucide="search" class="w-5 h-5 text-gray-400"></i>
+                            <input type="text" class="search-input desktop-search-input" placeholder="Search contacts by name, email, location, or notes...">
+                        </div>
+                        <div class="filter-controls desktop-filter-controls">
+                            <button class="filter-btn desktop-filter-btn">Tier ▼</button>
+                            <button class="filter-btn desktop-filter-btn">Location ▼</button>
+                            <button class="filter-btn desktop-filter-btn">More Filters ▼</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Responsive Content -->
+                <div class="responsive-content desktop-content">
+                    <div class="content-grid desktop-content-grid">
+                        <!-- Contact Card 1 -->
+                        <div class="contact-card desktop-contact-card">
+                            <div class="contact-header">
+                                <div class="contact-avatar desktop-contact-avatar">JG</div>
+                                <div class="contact-info">
+                                    <div class="contact-name desktop-contact-name">John Garcia</div>
+                                    <div class="contact-details">New York, NY • john@email.com</div>
+                                </div>
+                                <div class="contact-actions desktop-contact-actions">
+                                    <button class="contact-action-btn desktop-contact-action-btn">
+                                        <i data-lucide="edit-2" class="w-4 h-4"></i>
+                                    </button>
+                                    <button class="contact-action-btn desktop-contact-action-btn">
+                                        <i data-lucide="message-circle" class="w-4 h-4"></i>
+                                    </button>
+                                    <button class="contact-action-btn desktop-contact-action-btn">
+                                        <i data-lucide="phone" class="w-4 h-4"></i>
+                                    </button>
+                                    <button class="contact-action-btn desktop-contact-action-btn">
+                                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Contact Card 2 -->
+                        <div class="contact-card desktop-contact-card">
+                            <div class="contact-header">
+                                <div class="contact-avatar desktop-contact-avatar">SM</div>
+                                <div class="contact-info">
+                                    <div class="contact-name desktop-contact-name">Sarah Mitchell</div>
+                                    <div class="contact-details">Los Angeles, CA • sarah@email.com</div>
+                                </div>
+                                <div class="contact-actions desktop-contact-actions">
+                                    <button class="contact-action-btn desktop-contact-action-btn">
+                                        <i data-lucide="edit-2" class="w-4 h-4"></i>
+                                    </button>
+                                    <button class="contact-action-btn desktop-contact-action-btn">
+                                        <i data-lucide="message-circle" class="w-4 h-4"></i>
+                                    </button>
+                                    <button class="contact-action-btn desktop-contact-action-btn">
+                                        <i data-lucide="phone" class="w-4 h-4"></i>
+                                    </button>
+                                    <button class="contact-action-btn desktop-contact-action-btn">
+                                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Contact Card 3 -->
+                        <div class="contact-card desktop-contact-card">
+                            <div class="contact-header">
+                                <div class="contact-avatar desktop-contact-avatar">RJ</div>
+                                <div class="contact-info">
+                                    <div class="contact-name desktop-contact-name">Robert Johnson</div>
+                                    <div class="contact-details">Chicago, IL • robert@email.com</div>
+                                </div>
+                                <div class="contact-actions desktop-contact-actions">
+                                    <button class="contact-action-btn desktop-contact-action-btn">
+                                        <i data-lucide="edit-2" class="w-4 h-4"></i>
+                                    </button>
+                                    <button class="contact-action-btn desktop-contact-action-btn">
+                                        <i data-lucide="message-circle" class="w-4 h-4"></i>
+                                    </button>
+                                    <button class="contact-action-btn desktop-contact-action-btn">
+                                        <i data-lucide="phone" class="w-4 h-4"></i>
+                                    </button>
+                                    <button class="contact-action-btn desktop-contact-action-btn">
+                                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Contact Card 4 -->
+                        <div class="contact-card desktop-contact-card">
+                            <div class="contact-header">
+                                <div class="contact-avatar desktop-contact-avatar">AW</div>
+                                <div class="contact-info">
+                                    <div class="contact-name desktop-contact-name">Amanda Wilson</div>
+                                    <div class="contact-details">Miami, FL • amanda@email.com</div>
+                                </div>
+                                <div class="contact-actions desktop-contact-actions">
+                                    <button class="contact-action-btn desktop-contact-action-btn">
+                                        <i data-lucide="edit-2" class="w-4 h-4"></i>
+                                    </button>
+                                    <button class="contact-action-btn desktop-contact-action-btn">
+                                        <i data-lucide="message-circle" class="w-4 h-4"></i>
+                                    </button>
+                                    <button class="contact-action-btn desktop-contact-action-btn">
+                                        <i data-lucide="phone" class="w-4 h-4"></i>
+                                    </button>
+                                    <button class="contact-action-btn desktop-contact-action-btn">
+                                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Mobile Bottom Navigation (Hidden on Desktop) -->
+                <div class="mobile-bottom-nav mobile-only">
+                    <div class="mobile-nav-item active">
+                        <i data-lucide="grid" class="w-5 h-5 mb-1"></i>
+                        <span class="text-xs">Grid</span>
+                    </div>
+                    <div class="mobile-nav-item">
+                        <i data-lucide="list" class="w-5 h-5 mb-1"></i>
+                        <span class="text-xs">List</span>
+                    </div>
+                    <div class="mobile-nav-item">
+                        <i data-lucide="network" class="w-5 h-5 mb-1"></i>
+                        <span class="text-xs">Network</span>
+                    </div>
+                    <div class="mobile-nav-item">
+                        <i data-lucide="bar-chart-3" class="w-5 h-5 mb-1"></i>
+                        <span class="text-xs">Analytics</span>
+                    </div>
+                </div>
+
+                <!-- Mobile Floating Action Button (Hidden on Desktop) -->
+                <div class="mobile-fab mobile-only">
+                    <i data-lucide="plus" class="w-6 h-6"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Lucide icons
+        lucide.createIcons();
+
+        // Mode switching functionality
+        function switchMode(mode) {
+            const frame = document.getElementById('uiFrame');
+            const buttons = document.querySelectorAll('.toggle-btn');
+            
+            // Update button states
+            buttons.forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            // Update frame classes
+            frame.className = `ui-frame ${mode}-frame`;
+            
+            // Add/remove mobile mode class
+            if (mode === 'mobile') {
+                frame.classList.add('mobile-mode');
+            } else {
+                frame.classList.remove('mobile-mode');
+            }
+        }
+
+        // Add interactive functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            // Navigation functionality
+            const navBtns = document.querySelectorAll('.nav-btn');
+            navBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    navBtns.forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                });
+            });
+
+            // Mobile navigation functionality
+            const mobileNavItems = document.querySelectorAll('.mobile-nav-item');
+            mobileNavItems.forEach(item => {
+                item.addEventListener('click', function() {
+                    mobileNavItems.forEach(n => n.classList.remove('active'));
+                    this.classList.add('active');
+                });
+            });
+
+            // Contact card hover effects
+            const contactCards = document.querySelectorAll('.contact-card');
+            contactCards.forEach(card => {
+                card.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateY(-4px)';
+                });
+                card.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateY(0)';
+                });
+            });
+        });
+    </script>
+</body>
+</html>

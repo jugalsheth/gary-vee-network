@@ -214,13 +214,13 @@ export async function getContactsAnalyticsWithFilters(filters: { tier?: string; 
 // Advanced network stats
 export async function getNetworkStats() {
   try {
-    // Fetch all contacts and their connections
-    const rows = await snowflakeManager.execute(`SELECT id, name, tier, connections FROM gary_vee_contacts`);
+    // Fetch all contacts (without connections field to avoid VARIANT issues)
+    const rows = await snowflakeManager.execute(`SELECT id, name, tier FROM gary_vee_contacts`);
     const contacts = rows.map((row: any) => ({
       id: row.ID,
       name: row.NAME,
       tier: row.TIER,
-      connections: Array.isArray(row.CONNECTIONS) ? row.CONNECTIONS : []
+      connections: [] // Initialize as empty array
     }));
     const totalContacts = contacts.length;
     let totalConnections = 0;

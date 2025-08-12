@@ -1,5 +1,7 @@
 import { getContacts, getContactsPaginated, addContact, updateContact, deleteContact, searchContactsPaginated } from '@/lib/storage';
 import { NextRequest } from 'next/server';
+import { contactLimiter } from '@/lib/rateLimit';
+import { errorMonitor, extractRequestContext } from '@/lib/errorMonitor';
 
 export async function GET(request: NextRequest) {
   try {
@@ -31,6 +33,14 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error';
     console.error('❌ API: Get contacts failed:', message);
+    
+    // Log error with context
+    const context = extractRequestContext(request);
+    errorMonitor.logError(error, {
+      ...context,
+      additionalData: { page, limit, filters }
+    });
+    
     return new Response(JSON.stringify({ error: message }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' }
@@ -39,6 +49,18 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  // Apply rate limiting
+  try {
+    await new Promise((resolve, reject) => {
+      contactLimiter(request as any, {
+        status: (code: number) => ({ json: (data: any) => reject(new Error(JSON.stringify(data))) }),
+        json: (data: any) => reject(new Error(JSON.stringify(data)))
+      } as any, resolve);
+    });
+  } catch (error) {
+    return new Response(error.message, { status: 429 });
+  }
+
   try {
     console.log('💾 API: Adding contact...');
     const contactData = await request.json();
@@ -51,6 +73,14 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error';
     console.error('❌ API: Add contact failed:', message);
+    
+    // Log error with context
+    const context = extractRequestContext(request);
+    errorMonitor.logError(error, {
+      ...context,
+      additionalData: { operation: 'add_contact' }
+    });
+    
     return new Response(JSON.stringify({ error: message }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' }
@@ -59,6 +89,18 @@ export async function POST(request: NextRequest) {
 }
 
 export async function PUT(request: NextRequest) {
+  // Apply rate limiting
+  try {
+    await new Promise((resolve, reject) => {
+      contactLimiter(request as any, {
+        status: (code: number) => ({ json: (data: any) => reject(new Error(JSON.stringify(data))) }),
+        json: (data: any) => reject(new Error(JSON.stringify(data)))
+      } as any, resolve);
+    });
+  } catch (error) {
+    return new Response(error.message, { status: 429 });
+  }
+
   try {
     console.log('🔄 API: Updating contact...');
     const { id, ...updates } = await request.json();
@@ -82,6 +124,18 @@ export async function PUT(request: NextRequest) {
 }
 
 export async function DELETE(request: NextRequest) {
+  // Apply rate limiting
+  try {
+    await new Promise((resolve, reject) => {
+      contactLimiter(request as any, {
+        status: (code: number) => ({ json: (data: any) => reject(new Error(JSON.stringify(data))) }),
+        json: (data: any) => reject(new Error(JSON.stringify(data)))
+      } as any, resolve);
+    });
+  } catch (error) {
+    return new Response(error.message, { status: 429 });
+  }
+
   try {
     console.log('🗑️ API: Deleting contact...');
     const { id } = await request.json();

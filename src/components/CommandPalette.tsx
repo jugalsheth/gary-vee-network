@@ -21,6 +21,7 @@ const QUICK_ACTIONS = [
   { label: 'Export Data', action: 'export' },
   { label: 'Switch Theme', action: 'theme' },
   { label: 'Import Contacts', action: 'import' },
+  { label: 'Performance Dashboard', action: 'performance' },
 ];
 
 // Helper type guard
@@ -122,6 +123,11 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
         toggleTheme();
       } else if (item.action === 'import') {
         setShowImportModal(true);
+      } else if (item.action === 'performance') {
+        // Trigger performance dashboard - we'll need to pass this through props
+        console.log('🎯 Performance dashboard requested');
+        // For now, we'll use a custom event
+        window.dispatchEvent(new CustomEvent('openPerformanceDashboard'));
       }
     } else if (item.name && item.id) {
       scrollToAndHighlightContact(item.id);

@@ -5,6 +5,7 @@ import { ThemeProvider } from "@/components/ThemeProvider";
 import { AuthProvider } from "@/components/AuthProvider";
 import { CacheProvider } from "@/components/CacheProvider";
 import { Toaster } from "sonner";
+import { setupGlobalErrorHandling } from '@/lib/errorMonitor';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -28,6 +29,11 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // Set up global error handling
+  if (typeof window === 'undefined') {
+    setupGlobalErrorHandling();
+  }
+  
   return (
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`}>
       <body className="antialiased" suppressHydrationWarning={true}>

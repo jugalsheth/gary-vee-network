@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gary Vee Network - UI Comparison</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        :root {
+            --background: oklch(0.9900 0 0);
+            --foreground: oklch(0 0 0);
+            --card: oklch(1 0 0);
+            --card-foreground: oklch(0 0 0);
+            --primary: oklch(0.5555 0 0);
+            --primary-foreground: oklch(0.9851 0 0);
+            --secondary: oklch(0.9702 0 0);
+            --secondary-foreground: oklch(0.2046 0 0);
+            --muted: oklch(0.9702 0 0);
+            --muted-foreground: oklch(0.5486 0 0);
+            --accent: oklch(0.9702 0 0);
+            --accent-foreground: oklch(0.2046 0 0);
+            --border: oklch(0.9219 0 0);
+            --radius: 0.5rem;
+            --font-sans: "Inter", sans-serif;
+        }
+
+        body {
+            font-family: var(--font-sans);
+            background: var(--background);
+            color: var(--foreground);
+            margin: 0;
+            padding: 0;
+        }
+
+        .comparison-container {
+            display: flex;
+            gap: 2rem;
+            padding: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .ui-version {
+            flex: 1;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .version-header {
+            padding: 1rem;
+            background: #f8fafc;
+            border-bottom: 1px solid #e2e8f0;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .current-header { background: #fee2e2; color: #dc2626; }
+        .improved-header { background: #dcfce7; color: #059669; }
+
+        .mobile-frame {
+            width: 375px;
+            height: 667px;
+            margin: 0 auto;
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 20px;
+            overflow: hidden;
+            position: relative;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+        }
+
+        .mobile-content {
+            height: 100%;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        /* Current UI Styles */
+        .current-header-stacked {
+            background: linear-gradient(to right, #dbeafe, #e0e7ff);
+            padding: 1rem;
+        }
+
+        .current-header-row {
+            margin-bottom: 0.75rem;
+        }
+
+        .current-header-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .current-search-section {
+            padding: 1rem;
+            background: #f8fafc;
+        }
+
+        .current-search-bar {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 0.75rem;
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .current-filter-row {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .current-filter-btn {
+            padding: 0.5rem 0.75rem;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            font-size: 0.875rem;
+            color: #374151;
+        }
+
+        .current-analytics {
+            padding: 1rem;
+            background: white;
+        }
+
+        .current-analytics-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0.5rem;
+        }
+
+        .current-analytics-card {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 0.75rem;
+            text-align: center;
+        }
+
+        .current-contact-card {
+            margin: 0.75rem;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 1rem;
+        }
+
+        .current-contact-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .current-avatar {
+            width: 2.5rem;
+            height: 2.5rem;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #ec4899, #be185d);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 0.875rem;
+        }
+
+        .current-contact-info {
+            flex: 1;
+        }
+
+        .current-contact-name {
+            font-weight: 600;
+            color: #111827;
+            margin-bottom: 0.25rem;
+        }
+
+        .current-contact-details {
+            font-size: 0.875rem;
+            color: #6b7280;
+        }
+
+        .current-contact-actions {
+            display: flex;
+            gap: 0.25rem;
+        }
+
+        .current-action-btn {
+            padding: 0.25rem;
+            color: #6b7280;
+            border-radius: 4px;
+        }
+
+        /* Improved UI Styles */
+        .improved-header-compact {
+            background: linear-gradient(to right, #dbeafe, #e0e7ff);
+            padding: 0.75rem 1rem;
+        }
+
+        .improved-header-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .improved-title-section {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .improved-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #111827;
+        }
+
+        .improved-badge {
+            padding: 0.25rem 0.5rem;
+            background: #dbeafe;
+            color: #1e40af;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .improved-header-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .improved-header-btn {
+            padding: 0.5rem;
+            color: #6b7280;
+            border-radius: 6px;
+        }
+
+        .improved-analytics-row {
+            padding: 0 1rem 1rem;
+            display: flex;
+            gap: 0.5rem;
+            overflow-x: auto;
+        }
+
+        .improved-analytics-card {
+            min-width: 5rem;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 0.75rem;
+            text-align: center;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .improved-analytics-number {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #111827;
+            margin-bottom: 0.25rem;
+        }
+
+        .improved-analytics-label {
+            font-size: 0.75rem;
+            color: #6b7280;
+        }
+
+        .improved-search-bar {
+            margin: 1rem;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 0.75rem 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .improved-search-input {
+            flex: 1;
+            border: none;
+            outline: none;
+            font-size: 1rem;
+            color: #374151;
+        }
+
+        .improved-search-input::placeholder {
+            color: #9ca3af;
+        }
+
+        .improved-filter-chips {
+            display: flex;
+            gap: 0.5rem;
+            padding: 0 1rem 1rem;
+            overflow-x: auto;
+        }
+
+        .improved-filter-chip {
+            padding: 0.375rem 0.75rem;
+            background: #f3f4f6;
+            border: 1px solid #e5e7eb;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            color: #374151;
+            white-space: nowrap;
+        }
+
+        .improved-filter-chip.active {
+            background: #3b82f6;
+            color: white;
+            border-color: #3b82f6;
+        }
+
+        .improved-contact-card {
+            margin: 0 1rem 0.75rem;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 1rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .improved-contact-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 0.75rem;
+        }
+
+        .improved-contact-info {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .improved-avatar {
+            width: 3rem;
+            height: 3rem;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #ec4899, #be185d);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 1rem;
+        }
+
+        .improved-contact-details h3 {
+            font-weight: 600;
+            color: #111827;
+            margin-bottom: 0.25rem;
+        }
+
+        .improved-contact-details p {
+            font-size: 0.875rem;
+            color: #6b7280;
+        }
+
+        .improved-tier-badge {
+            padding: 0.25rem 0.5rem;
+            background: linear-gradient(135deg, #ec4899, #be185d);
+            color: white;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .improved-swipe-actions {
+            display: flex;
+            gap: 0.25rem;
+            margin-top: 0.75rem;
+        }
+
+        .improved-swipe-action {
+            flex: 1;
+            padding: 0.5rem;
+            border-radius: 6px;
+            text-align: center;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        .action-edit { background: #dbeafe; color: #1d4ed8; }
+        .action-message { background: #dcfce7; color: #059669; }
+        .action-call { background: #fef3c7; color: #d97706; }
+        .action-delete { background: #fee2e2; color: #dc2626; }
+
+        .improved-bottom-nav {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            border-top: 1px solid #e2e8f0;
+            padding: 0.5rem 0;
+            display: flex;
+            justify-content: space-around;
+        }
+
+        .improved-nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 0.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        .improved-nav-item.active {
+            background: #f3f4f6;
+            color: #3b82f6;
+        }
+
+        .improved-fab {
+            position: absolute;
+            bottom: 5rem;
+            right: 1rem;
+            width: 3.5rem;
+            height: 3.5rem;
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+            cursor: pointer;
+        }
+
+        .comparison-legend {
+            text-align: center;
+            margin-bottom: 2rem;
+            padding: 1rem;
+            background: #f8fafc;
+            border-radius: 8px;
+        }
+
+        .legend-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin: 0 1rem;
+            font-size: 0.875rem;
+        }
+
+        .legend-dot {
+            width: 0.75rem;
+            height: 0.75rem;
+            border-radius: 50%;
+        }
+
+        .legend-current { background: #dc2626; }
+        .legend-improved { background: #059669; }
+    </style>
+</head>
+<body>
+    <div class="comparison-legend">
+        <h2 class="text-xl font-semibold mb-4">Gary Vee Network - Mobile UI Comparison</h2>
+        <div class="flex justify-center gap-8">
+            <div class="legend-item">
+                <div class="legend-dot legend-current"></div>
+                <span>Current UI (Issues)</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-dot legend-improved"></div>
+                <span>Improved UI (Solutions)</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="comparison-container">
+        <!-- Current UI -->
+        <div class="ui-version">
+            <div class="version-header current-header">
+                Current UI - Mobile Issues
+            </div>
+            <div class="mobile-frame">
+                <div class="mobile-content">
+                    <!-- Current Header - Stacked -->
+                    <div class="current-header-stacked">
+                        <div class="current-header-row">
+                            <div class="flex items-center gap-2">
+                                <h1 class="text-lg font-bold text-gray-900">Vee Network</h1>
+                                <span class="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">TeamG</span>
+                                <span class="px-2 py-1 bg-gray-100 text-gray-800 text-xs rounded-full">demo-teamg</span>
+                            </div>
+                        </div>
+                        <div class="current-header-row">
+                            <div class="text-sm text-gray-600">Welcome, User</div>
+                        </div>
+                        <div class="current-header-row">
+                            <div class="flex gap-2">
+                                <button class="px-3 py-1 text-sm text-gray-600">Logout</button>
+                                <button class="px-3 py-1 text-sm text-gray-600">🌙</button>
+                            </div>
+                        </div>
+                        <div class="current-header-row">
+                            <div class="flex gap-1">
+                                <button class="px-2 py-1 text-xs bg-blue-600 text-white rounded">Grid</button>
+                                <button class="px-2 py-1 text-xs bg-gray-200 text-gray-700 rounded">List</button>
+                                <button class="px-2 py-1 text-xs bg-gray-200 text-gray-700 rounded">Network</button>
+                                <button class="px-2 py-1 text-xs bg-gray-200 text-gray-700 rounded">Analytics</button>
+                            </div>
+                        </div>
+                        <div class="current-header-row">
+                            <div class="flex gap-1 flex-wrap">
+                                <button class="px-2 py-1 text-xs bg-gray-200 text-gray-700 rounded">Import</button>
+                                <button class="px-2 py-1 text-xs bg-gray-200 text-gray-700 rounded">Export</button>
+                                <button class="px-2 py-1 text-xs bg-gray-200 text-gray-700 rounded">Voice</button>
+                                <button class="px-2 py-1 text-xs bg-gray-200 text-gray-700 rounded">Search</button>
+                                <button class="px-2 py-1 text-xs bg-blue-600 text-white rounded">Add</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Current Analytics -->
+                    <div class="current-analytics">
+                        <div class="current-analytics-grid">
+                            <div class="current-analytics-card">
+                                <div class="text-lg font-bold">1,234</div>
+                                <div class="text-xs text-gray-600">Total</div>
+                            </div>
+                            <div class="current-analytics-card">
+                                <div class="text-lg font-bold">456</div>
+                                <div class="text-xs text-gray-600">Tier 1</div>
+                            </div>
+                            <div class="current-analytics-card">
+                                <div class="text-lg font-bold">789</div>
+                                <div class="text-xs text-gray-600">Tier 2</div>
+                            </div>
+                            <div class="current-analytics-card">
+                                <div class="text-lg font-bold">123</div>
+                                <div class="text-xs text-gray-600">Tier 3</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Current Search Section -->
+                    <div class="current-search-section">
+                        <div class="current-search-bar">
+                            <i data-lucide="search" class="w-4 h-4 text-gray-400"></i>
+                            <input type="text" placeholder="Search contacts..." class="flex-1 border-none outline-none">
+                        </div>
+                        <div class="current-filter-row">
+                            <button class="current-filter-btn">Tier ▼</button>
+                            <button class="current-filter-btn">Location ▼</button>
+                            <button class="current-filter-btn">More ▼</button>
+                        </div>
+                        <div class="text-xs text-gray-600">
+                            Results: 1,234 | Filters: 3 | Query: Active
+                        </div>
+                    </div>
+
+                    <!-- Current Contact Cards -->
+                    <div class="current-contact-card">
+                        <div class="current-contact-header">
+                            <div class="current-avatar">JG</div>
+                            <div class="current-contact-info">
+                                <div class="current-contact-name">John Garcia</div>
+                                <div class="current-contact-details">New York, NY • john@email.com</div>
+                            </div>
+                            <div class="current-contact-actions">
+                                <button class="current-action-btn">
+                                    <i data-lucide="edit-2" class="w-4 h-4"></i>
+                                </button>
+                                <button class="current-action-btn">
+                                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="current-contact-card">
+                        <div class="current-contact-header">
+                            <div class="current-avatar">SM</div>
+                            <div class="current-contact-info">
+                                <div class="current-contact-name">Sarah Mitchell</div>
+                                <div class="current-contact-details">Los Angeles, CA • sarah@email.com</div>
+                            </div>
+                            <div class="current-contact-actions">
+                                <button class="current-action-btn">
+                                    <i data-lucide="edit-2" class="w-4 h-4"></i>
+                                </button>
+                                <button class="current-action-btn">
+                                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Improved UI -->
+        <div class="ui-version">
+            <div class="version-header improved-header">
+                Improved UI - Mobile Solutions
+            </div>
+            <div class="mobile-frame">
+                <div class="mobile-content">
+                    <!-- Improved Header - Compact -->
+                    <div class="improved-header-compact">
+                        <div class="improved-header-content">
+                            <div class="improved-title-section">
+                                <h1 class="improved-title">Vee Network</h1>
+                                <span class="improved-badge">TeamG</span>
+                            </div>
+                            <div class="improved-header-actions">
+                                <button class="improved-header-btn">
+                                    <i data-lucide="search" class="w-5 h-5"></i>
+                                </button>
+                                <button class="improved-header-btn">
+                                    <i data-lucide="more-vertical" class="w-5 h-5"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Improved Analytics Row -->
+                    <div class="improved-analytics-row">
+                        <div class="improved-analytics-card">
+                            <div class="improved-analytics-number">1,234</div>
+                            <div class="improved-analytics-label">Total</div>
+                        </div>
+                        <div class="improved-analytics-card">
+                            <div class="improved-analytics-number">456</div>
+                            <div class="improved-analytics-label">Tier 1</div>
+                        </div>
+                        <div class="improved-analytics-card">
+                            <div class="improved-analytics-number">789</div>
+                            <div class="improved-analytics-label">Tier 2</div>
+                        </div>
+                        <div class="improved-analytics-card">
+                            <div class="improved-analytics-number">123</div>
+                            <div class="improved-analytics-label">Tier 3</div>
+                        </div>
+                    </div>
+
+                    <!-- Improved Search Bar -->
+                    <div class="improved-search-bar">
+                        <i data-lucide="search" class="w-5 h-5 text-gray-400"></i>
+                        <input type="text" class="improved-search-input" placeholder="Search contacts...">
+                        <button class="p-2 text-gray-400 hover:text-gray-600">
+                            <i data-lucide="mic" class="w-5 h-5"></i>
+                        </button>
+                    </div>
+
+                    <!-- Improved Filter Chips -->
+                    <div class="improved-filter-chips">
+                        <div class="improved-filter-chip active">All</div>
+                        <div class="improved-filter-chip">Tier 1</div>
+                        <div class="improved-filter-chip">Tier 2</div>
+                        <div class="improved-filter-chip">Tier 3</div>
+                        <div class="improved-filter-chip">New York</div>
+                        <div class="improved-filter-chip">Los Angeles</div>
+                    </div>
+
+                    <!-- Improved Contact Cards -->
+                    <div class="improved-contact-card">
+                        <div class="improved-contact-header">
+                            <div class="improved-contact-info">
+                                <div class="improved-avatar">JG</div>
+                                <div class="improved-contact-details">
+                                    <h3>John Garcia</h3>
+                                    <p>New York, NY</p>
+                                </div>
+                            </div>
+                            <span class="improved-tier-badge">T1</span>
+                        </div>
+                        
+                        <div class="improved-swipe-actions">
+                            <div class="improved-swipe-action action-edit">
+                                <i data-lucide="edit-2" class="w-4 h-4 mx-auto mb-1"></i>
+                                Edit
+                            </div>
+                            <div class="improved-swipe-action action-message">
+                                <i data-lucide="message-circle" class="w-4 h-4 mx-auto mb-1"></i>
+                                Message
+                            </div>
+                            <div class="improved-swipe-action action-call">
+                                <i data-lucide="phone" class="w-4 h-4 mx-auto mb-1"></i>
+                                Call
+                            </div>
+                            <div class="improved-swipe-action action-delete">
+                                <i data-lucide="trash-2" class="w-4 h-4 mx-auto mb-1"></i>
+                                Delete
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="improved-contact-card">
+                        <div class="improved-contact-header">
+                            <div class="improved-contact-info">
+                                <div class="improved-avatar">SM</div>
+                                <div class="improved-contact-details">
+                                    <h3>Sarah Mitchell</h3>
+                                    <p>Los Angeles, CA</p>
+                                </div>
+                            </div>
+                            <span class="improved-tier-badge">T2</span>
+                        </div>
+                        
+                        <div class="improved-swipe-actions">
+                            <div class="improved-swipe-action action-edit">
+                                <i data-lucide="edit-2" class="w-4 h-4 mx-auto mb-1"></i>
+                                Edit
+                            </div>
+                            <div class="improved-swipe-action action-message">
+                                <i data-lucide="message-circle" class="w-4 h-4 mx-auto mb-1"></i>
+                                Message
+                            </div>
+                            <div class="improved-swipe-action action-call">
+                                <i data-lucide="phone" class="w-4 h-4 mx-auto mb-1"></i>
+                                Call
+                            </div>
+                            <div class="improved-swipe-action action-delete">
+                                <i data-lucide="trash-2" class="w-4 h-4 mx-auto mb-1"></i>
+                                Delete
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Floating Action Button -->
+                    <div class="improved-fab">
+                        <i data-lucide="plus" class="w-6 h-6"></i>
+                    </div>
+
+                    <!-- Bottom Navigation -->
+                    <div class="improved-bottom-nav">
+                        <div class="improved-nav-item active">
+                            <i data-lucide="grid" class="w-5 h-5 mb-1"></i>
+                            <span class="text-xs">Grid</span>
+                        </div>
+                        <div class="improved-nav-item">
+                            <i data-lucide="list" class="w-5 h-5 mb-1"></i>
+                            <span class="text-xs">List</span>
+                        </div>
+                        <div class="improved-nav-item">
+                            <i data-lucide="network" class="w-5 h-5 mb-1"></i>
+                            <span class="text-xs">Network</span>
+                        </div>
+                        <div class="improved-nav-item">
+                            <i data-lucide="bar-chart-3" class="w-5 h-5 mb-1"></i>
+                            <span class="text-xs">Analytics</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Key Improvements Summary -->
+    <div class="max-w-4xl mx-auto mt-8 p-6 bg-white rounded-lg shadow-lg">
+        <h3 class="text-lg font-semibold mb-4">Key Improvements Summary</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+                <h4 class="font-medium text-red-600 mb-2">Current Issues:</h4>
+                <ul class="text-sm text-gray-600 space-y-1">
+                    <li>• Header takes up 40% of screen height</li>
+                    <li>• Too many stacked elements</li>
+                    <li>• Small touch targets (edit/delete buttons)</li>
+                    <li>• Cramped navigation buttons</li>
+                    <li>• Hidden advanced filters</li>
+                    <li>• No bottom navigation</li>
+                </ul>
+            </div>
+            <div>
+                <h4 class="font-medium text-green-600 mb-2">Improved Solutions:</h4>
+                <ul class="text-sm text-gray-600 space-y-1">
+                    <li>• Compact header (15% screen height)</li>
+                    <li>• Single-row layout</li>
+                    <li>• Large touch targets (44px minimum)</li>
+                    <li>• Bottom navigation tabs</li>
+                    <li>• Horizontal filter chips</li>
+                    <li>• Floating action button</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Lucide icons
+        lucide.createIcons();
+
+        // Add interactive functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            // Filter chip functionality
+            const filterChips = document.querySelectorAll('.improved-filter-chip');
+            filterChips.forEach(chip => {
+                chip.addEventListener('click', function() {
+                    filterChips.forEach(c => c.classList.remove('active'));
+                    this.classList.add('active');
+                });
+            });
+
+            // Navigation functionality
+            const navItems = document.querySelectorAll('.improved-nav-item');
+            navItems.forEach(item => {
+                item.addEventListener('click', function() {
+                    navItems.forEach(n => n.classList.remove('active'));
+                    this.classList.add('active');
+                });
+            });
+        });
+    </script>
+</body>
+</html>

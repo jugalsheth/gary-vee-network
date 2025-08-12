@@ -270,7 +270,7 @@ export default function EnhancedSearchDemoPage() {
             <span>Press Cmd+K to open global search</span>
           </div>
         </div>
-
+        
         {/* Search Bar */}
         <Card className="mb-6">
           <CardContent className="p-6">

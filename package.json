@@ -6,7 +6,14 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "load-test": "node scripts/load-test.js",
+    "test-performance": "npm run load-test",
+    "test-security": "node scripts/test-security-features.js",
+    "deploy-office": "node scripts/deploy-office-testing.js",
+    "deploy": "node scripts/deploy-to-vercel.js",
+    "vercel-build": "next build",
+    "vercel-dev": "next dev"
   },
   "dependencies": {
     "@hookform/resolvers": "^2.9.11",
@@ -31,6 +38,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "d3": "^7.9.0",
+    "express-rate-limit": "^8.0.1",
     "fuse.js": "^7.1.0",
     "jsonwebtoken": "^9.0.2",
     "lodash": "^4.17.21",
@@ -56,6 +64,7 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "axios": "^1.11.0",
     "eslint": "^9",
     "eslint-config-next": "15.4.2",
     "tailwindcss": "^4",

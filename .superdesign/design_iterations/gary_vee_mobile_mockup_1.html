@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gary Vee Network - Mobile Mockup v1</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        :root {
+            --background: oklch(0.9900 0 0);
+            --foreground: oklch(0 0 0);
+            --card: oklch(1 0 0);
+            --card-foreground: oklch(0 0 0);
+            --primary: oklch(0.5555 0 0);
+            --primary-foreground: oklch(0.9851 0 0);
+            --secondary: oklch(0.9702 0 0);
+            --secondary-foreground: oklch(0.2046 0 0);
+            --muted: oklch(0.9702 0 0);
+            --muted-foreground: oklch(0.5486 0 0);
+            --accent: oklch(0.9702 0 0);
+            --accent-foreground: oklch(0.2046 0 0);
+            --border: oklch(0.9219 0 0);
+            --radius: 0.5rem;
+            --font-sans: "Inter", sans-serif;
+        }
+
+        body {
+            font-family: var(--font-sans);
+            background: var(--background);
+            color: var(--foreground);
+            margin: 0;
+            padding: 0;
+        }
+
+        .mobile-container {
+            max-width: 375px;
+            margin: 0 auto;
+            background: white;
+            min-height: 100vh;
+            position: relative;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        }
+
+        .contact-card {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            transition: all 0.2s ease;
+        }
+
+        .contact-card:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            transform: translateY(-2px);
+        }
+
+        .tier-badge {
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .tier-1 { background: linear-gradient(135deg, #ec4899, #be185d); color: white; }
+        .tier-2 { background: linear-gradient(135deg, #f59e0b, #d97706); color: white; }
+        .tier-3 { background: linear-gradient(135deg, #10b981, #059669); color: white; }
+
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 375px;
+            background: white;
+            border-top: 1px solid #e5e7eb;
+            padding: 8px 0;
+            display: flex;
+            justify-content: space-around;
+            z-index: 1000;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 8px;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+
+        .nav-item.active {
+            background: #f3f4f6;
+            color: #3b82f6;
+        }
+
+        .nav-item:hover {
+            background: #f9fafb;
+        }
+
+        .fab {
+            position: fixed;
+            bottom: 80px;
+            right: 20px;
+            width: 56px;
+            height: 56px;
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            z-index: 1000;
+        }
+
+        .fab:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 16px rgba(59, 130, 246, 0.6);
+        }
+
+        .search-bar {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 12px 16px;
+            margin: 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .search-input {
+            flex: 1;
+            border: none;
+            outline: none;
+            font-size: 16px;
+            color: #374151;
+        }
+
+        .search-input::placeholder {
+            color: #9ca3af;
+        }
+
+        .filter-chips {
+            display: flex;
+            gap: 8px;
+            padding: 0 16px 16px;
+            overflow-x: auto;
+            scrollbar-width: none;
+        }
+
+        .filter-chips::-webkit-scrollbar {
+            display: none;
+        }
+
+        .filter-chip {
+            padding: 6px 12px;
+            background: #f3f4f6;
+            border: 1px solid #e5e7eb;
+            border-radius: 16px;
+            font-size: 14px;
+            color: #374151;
+            white-space: nowrap;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .filter-chip.active {
+            background: #3b82f6;
+            color: white;
+            border-color: #3b82f6;
+        }
+
+        .analytics-row {
+            display: flex;
+            gap: 8px;
+            padding: 0 16px 16px;
+            overflow-x: auto;
+            scrollbar-width: none;
+        }
+
+        .analytics-row::-webkit-scrollbar {
+            display: none;
+        }
+
+        .analytics-card {
+            min-width: 80px;
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 12px;
+            text-align: center;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .analytics-number {
+            font-size: 20px;
+            font-weight: 700;
+            color: #111827;
+            margin-bottom: 4px;
+        }
+
+        .analytics-label {
+            font-size: 12px;
+            color: #6b7280;
+        }
+
+        .swipe-actions {
+            display: flex;
+            gap: 4px;
+            margin-top: 12px;
+        }
+
+        .swipe-action {
+            flex: 1;
+            padding: 8px;
+            border-radius: 6px;
+            text-align: center;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .action-edit { background: #dbeafe; color: #1d4ed8; }
+        .action-message { background: #dcfce7; color: #059669; }
+        .action-call { background: #fef3c7; color: #d97706; }
+        .action-delete { background: #fee2e2; color: #dc2626; }
+
+        .swipe-action:hover {
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body>
+    <div class="mobile-container">
+        <!-- Compact Header -->
+        <header class="bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-gray-200 px-4 py-3">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <h1 class="text-xl font-bold text-gray-900">Vee Network</h1>
+                    <div class="flex gap-1">
+                        <span class="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full font-medium">TeamG</span>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button class="p-2 text-gray-600 hover:text-gray-900">
+                        <i data-lucide="search" class="w-5 h-5"></i>
+                    </button>
+                    <button class="p-2 text-gray-600 hover:text-gray-900">
+                        <i data-lucide="more-vertical" class="w-5 h-5"></i>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Analytics Row -->
+        <div class="analytics-row">
+            <div class="analytics-card">
+                <div class="analytics-number">1,234</div>
+                <div class="analytics-label">Total</div>
+            </div>
+            <div class="analytics-card">
+                <div class="analytics-number">456</div>
+                <div class="analytics-label">Tier 1</div>
+            </div>
+            <div class="analytics-card">
+                <div class="analytics-number">789</div>
+                <div class="analytics-label">Tier 2</div>
+            </div>
+            <div class="analytics-card">
+                <div class="analytics-number">123</div>
+                <div class="analytics-label">Tier 3</div>
+            </div>
+        </div>
+
+        <!-- Search Bar -->
+        <div class="search-bar">
+            <i data-lucide="search" class="w-5 h-5 text-gray-400"></i>
+            <input type="text" class="search-input" placeholder="Search contacts...">
+            <button class="p-2 text-gray-400 hover:text-gray-600">
+                <i data-lucide="mic" class="w-5 h-5"></i>
+            </button>
+        </div>
+
+        <!-- Filter Chips -->
+        <div class="filter-chips">
+            <div class="filter-chip active">All</div>
+            <div class="filter-chip">Tier 1</div>
+            <div class="filter-chip">Tier 2</div>
+            <div class="filter-chip">Tier 3</div>
+            <div class="filter-chip">New York</div>
+            <div class="filter-chip">Los Angeles</div>
+            <div class="filter-chip">Business</div>
+        </div>
+
+        <!-- Contact List -->
+        <div class="px-4 pb-24">
+            <!-- Contact 1 -->
+            <div class="contact-card">
+                <div class="flex items-center justify-between mb-3">
+                    <div class="flex items-center gap-3">
+                        <div class="w-12 h-12 bg-gradient-to-br from-pink-500 to-pink-600 rounded-full flex items-center justify-center text-white font-bold text-lg">
+                            JG
+                        </div>
+                        <div>
+                            <h3 class="font-semibold text-gray-900">John Garcia</h3>
+                            <p class="text-sm text-gray-500">New York, NY</p>
+                        </div>
+                    </div>
+                    <span class="tier-badge tier-1">T1</span>
+                </div>
+                
+                <div class="swipe-actions">
+                    <div class="swipe-action action-edit">
+                        <i data-lucide="edit-2" class="w-4 h-4 mx-auto mb-1"></i>
+                        Edit
+                    </div>
+                    <div class="swipe-action action-message">
+                        <i data-lucide="message-circle" class="w-4 h-4 mx-auto mb-1"></i>
+                        Message
+                    </div>
+                    <div class="swipe-action action-call">
+                        <i data-lucide="phone" class="w-4 h-4 mx-auto mb-1"></i>
+                        Call
+                    </div>
+                    <div class="swipe-action action-delete">
+                        <i data-lucide="trash-2" class="w-4 h-4 mx-auto mb-1"></i>
+                        Delete
+                    </div>
+                </div>
+            </div>
+
+            <!-- Contact 2 -->
+            <div class="contact-card">
+                <div class="flex items-center justify-between mb-3">
+                    <div class="flex items-center gap-3">
+                        <div class="w-12 h-12 bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-full flex items-center justify-center text-white font-bold text-lg">
+                            SM
+                        </div>
+                        <div>
+                            <h3 class="font-semibold text-gray-900">Sarah Mitchell</h3>
+                            <p class="text-sm text-gray-500">Los Angeles, CA</p>
+                        </div>
+                    </div>
+                    <span class="tier-badge tier-2">T2</span>
+                </div>
+                
+                <div class="swipe-actions">
+                    <div class="swipe-action action-edit">
+                        <i data-lucide="edit-2" class="w-4 h-4 mx-auto mb-1"></i>
+                        Edit
+                    </div>
+                    <div class="swipe-action action-message">
+                        <i data-lucide="message-circle" class="w-4 h-4 mx-auto mb-1"></i>
+                        Message
+                    </div>
+                    <div class="swipe-action action-call">
+                        <i data-lucide="phone" class="w-4 h-4 mx-auto mb-1"></i>
+                        Call
+                    </div>
+                    <div class="swipe-action action-delete">
+                        <i data-lucide="trash-2" class="w-4 h-4 mx-auto mb-1"></i>
+                        Delete
+                    </div>
+                </div>
+            </div>
+
+            <!-- Contact 3 -->
+            <div class="contact-card">
+                <div class="flex items-center justify-between mb-3">
+                    <div class="flex items-center gap-3">
+                        <div class="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center text-white font-bold text-lg">
+                            RJ
+                        </div>
+                        <div>
+                            <h3 class="font-semibold text-gray-900">Robert Johnson</h3>
+                            <p class="text-sm text-gray-500">Chicago, IL</p>
+                        </div>
+                    </div>
+                    <span class="tier-badge tier-3">T3</span>
+                </div>
+                
+                <div class="swipe-actions">
+                    <div class="swipe-action action-edit">
+                        <i data-lucide="edit-2" class="w-4 h-4 mx-auto mb-1"></i>
+                        Edit
+                    </div>
+                    <div class="swipe-action action-message">
+                        <i data-lucide="message-circle" class="w-4 h-4 mx-auto mb-1"></i>
+                        Message
+                    </div>
+                    <div class="swipe-action action-call">
+                        <i data-lucide="phone" class="w-4 h-4 mx-auto mb-1"></i>
+                        Call
+                    </div>
+                    <div class="swipe-action action-delete">
+                        <i data-lucide="trash-2" class="w-4 h-4 mx-auto mb-1"></i>
+                        Delete
+                    </div>
+                </div>
+            </div>
+
+            <!-- Contact 4 -->
+            <div class="contact-card">
+                <div class="flex items-center justify-between mb-3">
+                    <div class="flex items-center gap-3">
+                        <div class="w-12 h-12 bg-gradient-to-br from-pink-500 to-pink-600 rounded-full flex items-center justify-center text-white font-bold text-lg">
+                            AW
+                        </div>
+                        <div>
+                            <h3 class="font-semibold text-gray-900">Amanda Wilson</h3>
+                            <p class="text-sm text-gray-500">Miami, FL</p>
+                        </div>
+                    </div>
+                    <span class="tier-badge tier-1">T1</span>
+                </div>
+                
+                <div class="swipe-actions">
+                    <div class="swipe-action action-edit">
+                        <i data-lucide="edit-2" class="w-4 h-4 mx-auto mb-1"></i>
+                        Edit
+                    </div>
+                    <div class="swipe-action action-message">
+                        <i data-lucide="message-circle" class="w-4 h-4 mx-auto mb-1"></i>
+                        Message
+                    </div>
+                    <div class="swipe-action action-call">
+                        <i data-lucide="phone" class="w-4 h-4 mx-auto mb-1"></i>
+                        Call
+                    </div>
+                    <div class="swipe-action action-delete">
+                        <i data-lucide="trash-2" class="w-4 h-4 mx-auto mb-1"></i>
+                        Delete
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Floating Action Button -->
+        <div class="fab">
+            <i data-lucide="plus" class="w-6 h-6"></i>
+        </div>
+
+        <!-- Bottom Navigation -->
+        <div class="bottom-nav">
+            <div class="nav-item active">
+                <i data-lucide="grid" class="w-5 h-5 mb-1"></i>
+                <span class="text-xs">Grid</span>
+            </div>
+            <div class="nav-item">
+                <i data-lucide="list" class="w-5 h-5 mb-1"></i>
+                <span class="text-xs">List</span>
+            </div>
+            <div class="nav-item">
+                <i data-lucide="network" class="w-5 h-5 mb-1"></i>
+                <span class="text-xs">Network</span>
+            </div>
+            <div class="nav-item">
+                <i data-lucide="bar-chart-3" class="w-5 h-5 mb-1"></i>
+                <span class="text-xs">Analytics</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Lucide icons
+        lucide.createIcons();
+
+        // Add interactive functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            // Filter chip functionality
+            const filterChips = document.querySelectorAll('.filter-chip');
+            filterChips.forEach(chip => {
+                chip.addEventListener('click', function() {
+                    filterChips.forEach(c => c.classList.remove('active'));
+                    this.classList.add('active');
+                });
+            });
+
+            // Navigation functionality
+            const navItems = document.querySelectorAll('.nav-item');
+            navItems.forEach(item => {
+                item.addEventListener('click', function() {
+                    navItems.forEach(n => n.classList.remove('active'));
+                    this.classList.add('active');
+                });
+            });
+
+            // Contact card hover effects
+            const contactCards = document.querySelectorAll('.contact-card');
+            contactCards.forEach(card => {
+                card.addEventListener('touchstart', function() {
+                    this.style.transform = 'scale(0.98)';
+                });
+                card.addEventListener('touchend', function() {
+                    this.style.transform = 'scale(1)';
+                });
+            });
+        });
+    </script>
+</body>
+</html>

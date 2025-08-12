@@ -214,6 +214,9 @@ export function saveSession(token: string, user: AuthUser): void {
   if (typeof window !== 'undefined') {
     localStorage.setItem('auth_token', token)
     localStorage.setItem('auth_user', JSON.stringify(user))
+    
+    // Also set cookie for server-side access
+    document.cookie = `auth_token=${token}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax`;
   }
 }
 
@@ -231,6 +234,9 @@ export function clearSession(): void {
   if (typeof window !== 'undefined') {
     localStorage.removeItem('auth_token')
     localStorage.removeItem('auth_user')
+    
+    // Also clear cookie
+    document.cookie = 'auth_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
   }
 }
 
@@ -241,4 +247,17 @@ export function isAuthenticated(): boolean {
   // Verify token is still valid
   const verifiedUser = verifyToken(token)
   return verifiedUser !== null
+}
+
+// Server-side cookie helper
+export function getAuthTokenFromCookie(cookieHeader: string | null): string | null {
+  if (!cookieHeader) return null;
+  
+  const cookies = cookieHeader.split(';').reduce((acc, cookie) => {
+    const [key, value] = cookie.trim().split('=');
+    acc[key] = value;
+    return acc;
+  }, {} as Record<string, string>);
+  
+  return cookies.auth_token || null;
 } 
